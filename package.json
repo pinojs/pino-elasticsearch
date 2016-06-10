@@ -1,0 +1,34 @@
+{
+  "name": "pino-elasticsearch",
+  "version": "0.0.1",
+  "description": "Load pino logs into ElasticSearch",
+  "main": "pino-elasticsearch",
+  "scripts": {
+    "test": "standard && tap test.js"
+  },
+  "pre-commit": "test",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/mcollina/pino-elasticsearch.git"
+  },
+  "keywords": [
+    "pino",
+    "log",
+    "fast",
+    "elasticsearch",
+    "elastic",
+    "search",
+    "kibana"
+  ],
+  "author": "Matteo Collina <hello@matteocollina.com>",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/mcollina/pino-elasticsearch/issues"
+  },
+  "homepage": "https://github.com/mcollina/pino-elasticsearch#readme",
+  "devDependencies": {
+    "pre-commit": "^1.1.3",
+    "standard": "^7.1.2",
+    "tap": "^5.7.2"
+  }
+}
