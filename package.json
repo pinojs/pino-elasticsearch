@@ -3,6 +3,9 @@
   "version": "0.0.1",
   "description": "Load pino logs into ElasticSearch",
   "main": "pino-elasticsearch",
+  "bin": {
+    "pino-elasticsearch": "./pino-elasticsearch.js"
+  },
   "scripts": {
     "test": "standard && tap test.js"
   },

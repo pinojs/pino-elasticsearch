@@ -1,3 +1,4 @@
+#! /usr/bin/env node
 'use strict'
 
 const Writable = require('readable-stream').Writable
@@ -38,7 +39,6 @@ function pinoElasticSearch (opts) {
         consistency,
         body
       }
-      console.log('upload', obj)
       client.create(obj, function (err, data) {
         if (!err) {
           data.body = body
