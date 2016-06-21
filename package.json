@@ -38,6 +38,7 @@
   "dependencies": {
     "elasticsearch": "^11.0.1",
     "fast-json-parse": "^1.0.2",
+    "minimist": "^1.2.0",
     "pump": "^1.0.1",
     "readable-stream": "^2.1.4",
     "split2": "^2.1.0"

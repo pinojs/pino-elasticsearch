@@ -1,6 +1,7 @@
 #! /usr/bin/env node
 'use strict'
 
+const minimist = require('minimist')
 const Writable = require('readable-stream').Writable
 const elasticsearch = require('elasticsearch')
 const Parse = require('fast-json-parse')
@@ -44,7 +45,7 @@ function pinoElasticSearch (opts) {
           data.body = body
           splitter.emit('insert', data)
         }
-        cb(err)
+        cb()
       })
     }
   })
@@ -55,3 +56,11 @@ function pinoElasticSearch (opts) {
 }
 
 module.exports = pinoElasticSearch
+
+function start (opts) {
+  pump(process.stdin, pinoElasticSearch(opts))
+}
+
+if (require.main === module) {
+  start(minimist(process.argv.slice(2)))
+}
