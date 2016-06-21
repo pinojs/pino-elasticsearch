@@ -1,6 +1,7 @@
 # pino-elasticsearch&nbsp;&nbsp;[![Build Status](https://travis-ci.org/mcollina/pino-elasticsearch.svg)](https://travis-ci.org/mcollina/pino-elasticsearch)&nbsp;[![Coverage Status](https://coveralls.io/repos/github/mcollina/pino-elasticsearch/badge.svg?branch=master)](https://coveralls.io/github/mcollina/pino-elasticsearch?branch=master)
 
-Load [pino](https://github.com/mcollina/pino) logs into ElasticSearch.
+Load [pino](https://github.com/mcollina/pino) logs into
+[ElasticSearch](https://www.elastic.co/products/elasticsearc://www.elastic.co/products/elasticsearch).
 
 ## Install
 
@@ -26,6 +27,9 @@ npm install pino-elasticsearch -g
   -t  | --type              the name of the type to use; default: log
   -c  | --consistency       the consistency of the write; default: one
 ```
+
+You can then use [Kibana](https://www.elastic.co/products/kibana) to
+browse and visualize your logs.
 
 ## Acknowledgements
 
