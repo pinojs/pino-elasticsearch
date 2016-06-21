@@ -55,7 +55,10 @@ function pinoElasticSearch (opts) {
             create.body = chunks[i].chunk
             splitter.emit('insert', create)
           }
+        } else {
+          splitter.emit('insertError', err)
         }
+        // skip error and continue
         cb()
       })
     },
