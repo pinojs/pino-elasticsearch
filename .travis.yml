@@ -1,11 +1,15 @@
 language: node_js
 sudo: false
 jdk:
-  - openjdk7
+- openjdk7
 node_js:
-  - '4'
-  - '5'
-  - '6'
+- '4'
+- '5'
+- '6'
 before_install:
-  - curl -s https://download.elasticsearch.org/elasticsearch/release/org/elasticsearch/distribution/tar/elasticsearch/2.3.0/elasticsearch-2.3.0.tar.gz | tar xz -C /tmp || true
-  - /tmp/elasticsearch-2.3.0/bin/elasticsearch &
+- curl -s https://download.elasticsearch.org/elasticsearch/release/org/elasticsearch/distribution/tar/elasticsearch/2.3.0/elasticsearch-2.3.0.tar.gz
+  | tar xz -C /tmp || true
+- /tmp/elasticsearch-2.3.0/bin/elasticsearch &
+env:
+  global:
+    secure: cwrncBLBvn6QxtTPB3JEwN427kBSPh1BOFn2MD9F28MKqPPRlRGbMDE7Rk2t5neKnllPi4YASBDCm2jDEV30jeYtwk+LFkScjGOk2OZWVhjwT0eJyCCqts0qAYA1r01I5zLq2vOLV3Ll6a3QkqNq29lAPFjcJCOPAtwA47eWL0d+66GCq4FoPtI/bDEdDo4btg1enuzywRDRkOeEYsPDLPYF73lNmydKMWMq7sUdVjiqLpALQEw3vjqvxC7LoOY6YNjtVVTUn5vGjsPF+eYJpk8dyq6UDTcrxje6IGJL7U+Pqn1str0Wgc9LyGcBJqPdRUIy8S/E3WFcU2i2GlcOy8fVpe0kCYYhRWDteeaYejiv2bak0rceXYoxXjkLP/YxbZsvd8H/IkHbkOZSacFbO27odH25a0lIthozb/zHz5vUCfolxKIs1X81hh76erDCT1Ptrla3h1W/wXMk5vX8CQD6Jj9vVwzsthR8Mm2uliaoaoeAixw55/R0u4Eor1P21v8+3iCxcLs915yBfscaNiJL8KFrUPzIrx8ANjYDJj5e4WcpVshKXDbFIPWsvVAxis6niskMLGa4VnG1n9MYkfz7NPU7tAznFWgGUdSWsSvh6gKbnlyZ4EoTqrQ+Xy0ejP9RL1UF8eLOQFOsMJFS8cWkK+BTE5JSKEhCOVYUSEY=
