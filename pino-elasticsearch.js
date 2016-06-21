@@ -33,6 +33,32 @@ function pinoElasticSearch (opts) {
 
   const writable = new Writable({
     objectMode: true,
+    writev: function (chunks, cb) {
+      const docs = new Array(chunks.length * 2)
+      for (var i = 0; i < docs.length; i++) {
+        if (i % 2 === 0) {
+          // add the header
+          docs[i] = { index: { _index: index, _type: type } }
+        } else {
+          // add the chunk
+          docs[i] = chunks[Math.floor(i / 2)].chunk
+        }
+      }
+      client.bulk({
+        consistency,
+        body: docs
+      }, function (err, result) {
+        if (!err) {
+          const items = result.items
+          for (var i = 0; i < items.length; i++) {
+            const create = items[i].create
+            create.body = chunks[i].chunk
+            splitter.emit('insert', create)
+          }
+        }
+        cb()
+      })
+    },
     write: function (body, enc, cb) {
       const obj = {
         index,
@@ -44,7 +70,11 @@ function pinoElasticSearch (opts) {
         if (!err) {
           data.body = body
           splitter.emit('insert', data)
+        } else {
+          splitter.emit('insertError', err)
         }
+
+        // skip error and continue
         cb()
       })
     }

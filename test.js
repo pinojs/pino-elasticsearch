@@ -25,7 +25,7 @@ tap.beforeEach((done) => {
   })
 })
 
-test('store log lines', (t) => {
+test('store a log line', (t) => {
   t.plan(3)
 
   const instance = elastic({ index, type, consistency })
@@ -47,7 +47,7 @@ test('store log lines', (t) => {
   })
 })
 
-test('store object-based log lines', (t) => {
+test('store an deeply nested log line', (t) => {
   t.plan(4)
 
   const instance = elastic({ index, type, consistency })
@@ -72,6 +72,32 @@ test('store object-based log lines', (t) => {
       t.error(err)
       t.deepEqual(response._source, obj.body, 'obj matches')
       t.deepEqual(response._source.deeply.nested.hello, 'world', 'obj gets linearized')
+    })
+  })
+})
+
+test('store lines in bulk', (t) => {
+  t.plan(15)
+
+  const instance = elastic({ index, type, consistency })
+  const log = pino(instance)
+
+  log.info('hello world')
+  log.info('hello world')
+  log.info('hello world')
+  log.info('hello world')
+  log.info('hello world')
+
+  instance.on('insert', (obj) => {
+    t.ok(obj, 'data uploaded')
+
+    client.get({
+      index,
+      type,
+      id: obj._id
+    }, (err, response) => {
+      t.error(err)
+      t.deepEqual(response._source, obj.body, 'obj matches')
     })
   })
 })
