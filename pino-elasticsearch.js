@@ -7,6 +7,8 @@ const elasticsearch = require('elasticsearch')
 const Parse = require('fast-json-parse')
 const split = require('split2')
 const pump = require('pump')
+const fs = require('fs')
+const path = require('path')
 
 function pinoElasticSearch (opts) {
   const splitter = split(function (line) {
@@ -23,7 +25,7 @@ function pinoElasticSearch (opts) {
   })
 
   const client = new elasticsearch.Client({
-    host: 'localhost:9200',
+    host: opts.host + ':' + opts.port,
     log: 'error'
   })
 
@@ -91,9 +93,30 @@ function pinoElasticSearch (opts) {
 module.exports = pinoElasticSearch
 
 function start (opts) {
+  if (opts.help) {
+    console.log(fs.readFileSync(path.join(__dirname, './usage.txt'), 'utf8'))
+    return
+  }
+
+  if (opts.version) {
+    console.log('pino-elasticsearch', require('./package.json').version)
+    return
+  }
+
   pump(process.stdin, pinoElasticSearch(opts))
 }
 
 if (require.main === module) {
-  start(minimist(process.argv.slice(2)))
+  start(minimist(process.argv.slice(2), {
+    alias: {
+      version: 'v',
+      help: 'h',
+      host: 'H',
+      port: 'p'
+    },
+    default: {
+      host: 'localhost',
+      port: 9200
+    }
+  }))
 }

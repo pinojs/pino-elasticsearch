@@ -12,6 +12,8 @@ const client = new elasticsearch.Client({
 const index = 'pinotest'
 const type = 'log'
 const consistency = 'one'
+const host = 'localhost'
+const port = 9200
 
 tap.tearDown(() => {
   client.close()
@@ -28,7 +30,7 @@ tap.beforeEach((done) => {
 test('store a log line', (t) => {
   t.plan(3)
 
-  const instance = elastic({ index, type, consistency })
+  const instance = elastic({ index, type, consistency, host, port })
   const log = pino(instance)
 
   log.info('hello world')
@@ -50,7 +52,7 @@ test('store a log line', (t) => {
 test('store an deeply nested log line', (t) => {
   t.plan(4)
 
-  const instance = elastic({ index, type, consistency })
+  const instance = elastic({ index, type, consistency, host, port })
   const log = pino(instance)
 
   log.info({
@@ -79,7 +81,7 @@ test('store an deeply nested log line', (t) => {
 test('store lines in bulk', (t) => {
   t.plan(15)
 
-  const instance = elastic({ index, type, consistency })
+  const instance = elastic({ index, type, consistency, host, port })
   const log = pino(instance)
 
   log.info('hello world')

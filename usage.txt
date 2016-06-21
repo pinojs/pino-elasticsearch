@@ -1,0 +1,15 @@
+
+  [0m[37m[1m[4mpino-elasticsearch[22m[39m[0m
+
+  [0mTo send [33mpino[39m logs to elasticsearch:[0m
+
+     [33mcat log | pino-elasticsearch --host 192.168.1.42[39m
+
+  [36m[1mFlags[22m[39m
+  [0m-h  | --help              Display Help
+  -v  | --version           display Version
+  -H  | --host              the IP address of elasticsearch; default: 127.0.0.1
+  -p  | --port              the port of elasticsearch; default: 9200
+  -i  | --index             the name of the index to use; default: pino
+  -t  | --type              the name of the type to use; default: log
+  -c  | --consistency       the consistency of the write; default: one
