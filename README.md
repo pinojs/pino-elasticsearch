@@ -31,6 +31,21 @@ npm install pino-elasticsearch -g
 You can then use [Kibana](https://www.elastic.co/products/kibana) to
 browse and visualize your logs.
 
+## Setup and Testing
+
+Setting up pino-elasticsearch is easy, and you can use the bundled
+`docker-compose.yml` file to bring up both
+[Elasticsearch](https://www.elastic.co/products/elasticsearch) and
+[Kibana](https://www.elastic.co/products/kibana).
+
+You will need [docker](https://www.docker.com/) and
+[docker-compose](https://docs.docker.com/compose/), then in this project
+folder, launch `docker-compose up`.
+
+You can test it by launching `node example | pino-elasticsearch`, in
+this project folder. You will need to have `pino-elasticsearch`
+installed globally.
+
 ## Acknowledgements
 
 This project was kindly sponsored by [nearForm](http://nearform.com).
