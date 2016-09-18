@@ -36,7 +36,7 @@ function pinoElasticSearch (opts) {
 
   const writable = new Writable({
     objectMode: true,
-    highWaterMark: opts.size || 16,
+    highWaterMark: opts.size || 500,
     writev: function (chunks, cb) {
       const docs = new Array(chunks.length * 2)
       for (var i = 0; i < docs.length; i++) {
