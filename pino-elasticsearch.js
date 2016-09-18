@@ -23,10 +23,11 @@ function pinoElasticSearch (opts) {
 
     return value
   })
-
   const client = new elasticsearch.Client({
     host: opts.host + ':' + opts.port,
-    log: 'error'
+    log: {
+      level: opts.loglevel || 'error'
+    }
   })
 
   const index = opts.index || 'pino'
@@ -35,6 +36,7 @@ function pinoElasticSearch (opts) {
 
   const writable = new Writable({
     objectMode: true,
+    highWaterMark: opts.size || 16,
     writev: function (chunks, cb) {
       const docs = new Array(chunks.length * 2)
       for (var i = 0; i < docs.length; i++) {
@@ -56,8 +58,7 @@ function pinoElasticSearch (opts) {
             // depending on the Elasticsearch version, the bulk response might
             // contain fields create or index (> ES 5.x)
             const create = items[i].index || items[i].create
-            create.body = chunks[i].chunk
-            splitter.emit('insert', create)
+            splitter.emit('insert', {data: create, body: chunks[i].chunk})
           }
         } else {
           splitter.emit('insertError', err)
@@ -70,8 +71,7 @@ function pinoElasticSearch (opts) {
       const obj = {index, type, consistency, body}
       client.create(obj, function (err, data) {
         if (!err) {
-          data.body = body
-          splitter.emit('insert', data)
+          splitter.emit('insert', {data: data, body: body})
         } else {
           splitter.emit('insertError', err)
         }
@@ -110,7 +110,9 @@ if (require.main === module) {
       help: 'h',
       host: 'H',
       port: 'p',
-      index: 'i'
+      index: 'i',
+      size: 's',
+      loglevel: 'l'
     },
     default: {
       host: 'localhost',
