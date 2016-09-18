@@ -53,7 +53,9 @@ function pinoElasticSearch (opts) {
         if (!err) {
           const items = result.items
           for (var i = 0; i < items.length; i++) {
-            const create = items[i].create
+            // depending on the Elasticsearch version, the bulk response might
+            // contain fields create or index (> ES 5.x)
+            const create = items[i].index || items[i].create
             create.body = chunks[i].chunk
             splitter.emit('insert', create)
           }
@@ -65,12 +67,7 @@ function pinoElasticSearch (opts) {
       })
     },
     write: function (body, enc, cb) {
-      const obj = {
-        index,
-        type,
-        consistency,
-        body
-      }
+      const obj = {index, type, consistency, body}
       client.create(obj, function (err, data) {
         if (!err) {
           data.body = body
