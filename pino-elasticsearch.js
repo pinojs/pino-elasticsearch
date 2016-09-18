@@ -112,7 +112,8 @@ if (require.main === module) {
       version: 'v',
       help: 'h',
       host: 'H',
-      port: 'p'
+      port: 'p',
+      index: 'i'
     },
     default: {
       host: 'localhost',
