@@ -30,21 +30,21 @@ tap.beforeEach((done) => {
 test('store a log line', (t) => {
   t.plan(3)
 
-  const instance = elastic({index, type, consistency, host, port})
+  const instance = elastic({ index, type, consistency, host, port })
   const log = pino(instance)
 
   log.info('hello world')
 
   instance.on('insert', (obj, body) => {
-    t.ok(obj.data, 'data uploaded')
+    t.ok(obj, 'data uploaded')
 
     client.get({
       index,
       type,
-      id: obj.data._id
+      id: obj._id
     }, (err, response) => {
       t.error(err)
-      t.deepEqual(response._source, obj.body, 'obj matches')
+      t.deepEqual(response._source, body, 'obj matches')
     })
   })
 })
@@ -52,7 +52,7 @@ test('store a log line', (t) => {
 test('store an deeply nested log line', (t) => {
   t.plan(4)
 
-  const instance = elastic({index, type, consistency, host, port})
+  const instance = elastic({ index, type, consistency, host, port })
   const log = pino(instance)
 
   log.info({
@@ -63,16 +63,16 @@ test('store an deeply nested log line', (t) => {
     }
   })
 
-  instance.on('insert', (obj) => {
-    t.ok(obj.data, 'data uploaded')
+  instance.on('insert', (obj, body) => {
+    t.ok(obj, 'data uploaded')
     setTimeout(function () {
       client.get({
         index,
         type,
-        id: obj.data._id
+        id: obj._id
       }, (err, response) => {
         t.error(err)
-        t.deepEqual(response._source, obj.body, 'obj matches')
+        t.deepEqual(response._source, body, 'obj matches')
         t.deepEqual(response._source.deeply.nested.hello, 'world', 'obj gets linearized')
       })
     }, refreshInterval)
@@ -82,7 +82,7 @@ test('store an deeply nested log line', (t) => {
 test('store lines in bulk', (t) => {
   t.plan(15)
 
-  const instance = elastic({index, type, consistency, host, port})
+  const instance = elastic({ index, type, consistency, host, port })
   const log = pino(instance)
 
   log.info('hello world')
@@ -91,16 +91,16 @@ test('store lines in bulk', (t) => {
   log.info('hello world')
   log.info('hello world')
 
-  instance.on('insert', (obj) => {
-    t.ok(obj.data, 'data uploaded')
+  instance.on('insert', (obj, body) => {
+    t.ok(obj, 'data uploaded')
     setTimeout(function () {
       client.get({
         index,
         type,
-        id: obj.data._id
+        id: obj._id
       }, (err, response) => {
         t.error(err)
-        t.deepEqual(response._source, obj.body, 'obj matches')
+        t.deepEqual(response._source, body, 'obj matches')
       })
     }, refreshInterval)
   })
