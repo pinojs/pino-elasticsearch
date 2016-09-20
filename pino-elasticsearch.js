@@ -112,7 +112,7 @@ if (require.main === module) {
       port: 'p',
       index: 'i',
       'bulk-size': 'b',
-      'trace-level': 't'
+      'trace-level': 'l'
     },
     default: {
       host: 'localhost',
