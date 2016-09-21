@@ -14,16 +14,16 @@ const type = 'log'
 const consistency = 'one'
 const host = 'localhost'
 const port = 9200
+// new data in Elasticsearch is only visible after the refreshInterval
+const refreshInterval = 1100 // assume ES default settings 1 second
 
 tap.tearDown(() => {
   client.close()
 })
 
 tap.beforeEach((done) => {
-  client.indices.delete({
-    index
-  }, () => {
-    client.indices.create({ index }, done)
+  client.indices.delete({index}, () => {
+    client.indices.create({index}, done)
   })
 })
 
@@ -35,7 +35,7 @@ test('store a log line', (t) => {
 
   log.info('hello world')
 
-  instance.on('insert', (obj) => {
+  instance.on('insert', (obj, body) => {
     t.ok(obj, 'data uploaded')
 
     client.get({
@@ -44,7 +44,7 @@ test('store a log line', (t) => {
       id: obj._id
     }, (err, response) => {
       t.error(err)
-      t.deepEqual(response._source, obj.body, 'obj matches')
+      t.deepEqual(response._source, body, 'obj matches')
     })
   })
 })
@@ -63,18 +63,19 @@ test('store an deeply nested log line', (t) => {
     }
   })
 
-  instance.on('insert', (obj) => {
+  instance.on('insert', (obj, body) => {
     t.ok(obj, 'data uploaded')
-
-    client.get({
-      index,
-      type,
-      id: obj._id
-    }, (err, response) => {
-      t.error(err)
-      t.deepEqual(response._source, obj.body, 'obj matches')
-      t.deepEqual(response._source.deeply.nested.hello, 'world', 'obj gets linearized')
-    })
+    setTimeout(function () {
+      client.get({
+        index,
+        type,
+        id: obj._id
+      }, (err, response) => {
+        t.error(err)
+        t.deepEqual(response._source, body, 'obj matches')
+        t.deepEqual(response._source.deeply.nested.hello, 'world', 'obj gets linearized')
+      })
+    }, refreshInterval)
   })
 })
 
@@ -90,16 +91,17 @@ test('store lines in bulk', (t) => {
   log.info('hello world')
   log.info('hello world')
 
-  instance.on('insert', (obj) => {
+  instance.on('insert', (obj, body) => {
     t.ok(obj, 'data uploaded')
-
-    client.get({
-      index,
-      type,
-      id: obj._id
-    }, (err, response) => {
-      t.error(err)
-      t.deepEqual(response._source, obj.body, 'obj matches')
-    })
+    setTimeout(function () {
+      client.get({
+        index,
+        type,
+        id: obj._id
+      }, (err, response) => {
+        t.error(err)
+        t.deepEqual(response._source, body, 'obj matches')
+      })
+    }, refreshInterval)
   })
 })
