@@ -1,6 +1,6 @@
 {
   "name": "pino-elasticsearch",
-  "version": "1.0.2",
+  "version": "1.1.0",
   "description": "Load pino logs into ElasticSearch",
   "main": "pino-elasticsearch",
   "bin": {
