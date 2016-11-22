@@ -10,7 +10,6 @@ env:
   - secure: lXGEsFYLLYpo+Snw4brEQQT2cHD3tZYCcgI9XPzWlzQ7gQ1dy8/IN9eeGgGZ4naplT8i3+UtT2gNtmZoRwzjkDUqYBk5jC/UQj0w/3GYbZ5prMb5/YrQsJSyZbUNSiMTHIu+z8A4S7PSHkJuLU3QznkWhMOle8Bx2TY9DmjybBAnQLpGtqeYTXeUoaMX+qZJVOQZh9o63lSVLn30cTPP+tNqk7cbBJrLbj9cl2wsyWPqXSZZwy4p0cu/dx3t8LrFDVnsjJylPtY5bWzj0cdJO/FRP5bU2QWopJ+Nqs9EauCCX9k3qHvWIFT3WInyQ+FGLnFDb6qtg8a21oXDUC2JaX2kw5XEnlbyka0pRKk7nrf9JglAiNMkUjQz9/7FvZoL/AiGdR2w88GEwE4Bno1bKI1MxAPXeAvNQT+TmqrUUyBDtNQsegsqD6dxoJuUBfqb8m2Kli2F1YRFA/zQ98gJSdpO7ho07CH5MGcOzQZ0O3Nz5Hl5OhMhaVB6jvQCnEsPu8OZZUN2XkpypeDQ8blzlSVvwSejWMkRVaf9313HDCTa2m9tgxa8ZOxQTfotgIwAnBCKCYRxNn4ZMIO2aW01d36cnZ2GHXQLjqL/mQC2MbDc4tdXD9zpFvNK7XcfHRtZ4hl/h9d8TJe92vjQxAMgnEzXpZRTfLLmwKI+YY0ImIY=
 before_install:
 - echo Installing Elastic $ELASTIC_VERSION from $ELASTIC_URL
-- remove_dir_from_path $JAVA_HOME/bin
 - export JAVA_HOME=/usr/lib/jvm/java-9-oracle
 - export PATH=$JAVA_HOME/bin:$PATH
 - curl -s $ELASTIC_URL | tar xz -C /tmp
