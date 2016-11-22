@@ -1,11 +1,9 @@
 language: node_js
 sudo: false
 jdk:
-- openjdk7
+- oraclejdk8
 node_js:
 - '4'
-- '6'
-- '7'
 env:
   matrix:
   - ELASTIC_VERSION="3.2.5" ELASTIC_URL=https://download.elasticsearch.org/elasticsearch/release/org/elasticsearch/distribution/tar/elasticsearch/2.3.0/elasticsearch-2.3.0.tar.gz
@@ -15,4 +13,5 @@ env:
 before_install:
 - echo Installing Elastic $ELASTIC_VERSION from $ELASTIC_URL
 - curl -s $ELASTIC_URL | tar xz -C /tmp
+- ls /tmp
 - /tmp/elasticsearch-${ELASTIC_VERSION}/bin/elasticsearch &
