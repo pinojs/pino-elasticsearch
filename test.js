@@ -28,6 +28,11 @@ tap.beforeEach((done) => {
   })
 })
 
+setTimeout(function () {
+  console.log('terminating, it\'s taking too long')
+  process.exit(1)
+}, 60 * 1000).unref()
+
 test('store a log line', {timeout}, (t) => {
   t.plan(3)
 
