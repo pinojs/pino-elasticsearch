@@ -1,7 +1,5 @@
 language: node_js
 sudo: false
-jdk:
-- openjdk7
 node_js:
 - '4'
 env:
@@ -15,3 +13,7 @@ before_install:
 - curl -s $ELASTIC_URL | tar xz -C /tmp
 - ls /tmp
 - /tmp/elasticsearch-${ELASTIC_VERSION}/bin/elasticsearch &
+addons:
+  apt:
+    packages:
+      - oracle-java8-installer
