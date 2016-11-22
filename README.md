@@ -25,7 +25,6 @@ npm install pino-elasticsearch -g
   -p  | --port              the port of elasticsearch; default: 9200
   -i  | --index             the name of the index to use; default: pino
   -t  | --type              the name of the type to use; default: log
-  -c  | --consistency       the consistency of the write; default: one
   -b  | --size              the number of documents for each bulk insert
   -l  | --trace-level       trace level for the elasticsearch client, default 'error' (info, debug, trace).
 
