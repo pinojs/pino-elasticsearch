@@ -16,6 +16,7 @@ const host = 'localhost'
 const port = 9200
 // new data in Elasticsearch is only visible after the refreshInterval
 const refreshInterval = 1100 // assume ES default settings 1 second
+const timeout = 5000
 
 tap.tearDown(() => {
   client.close()
@@ -27,7 +28,7 @@ tap.beforeEach((done) => {
   })
 })
 
-test('store a log line', (t) => {
+test('store a log line', {timeout}, (t) => {
   t.plan(3)
 
   const instance = elastic({ index, type, consistency, host, port })
@@ -49,7 +50,7 @@ test('store a log line', (t) => {
   })
 })
 
-test('store an deeply nested log line', (t) => {
+test('store an deeply nested log line', {timeout}, (t) => {
   t.plan(4)
 
   const instance = elastic({ index, type, consistency, host, port })
@@ -79,7 +80,7 @@ test('store an deeply nested log line', (t) => {
   })
 })
 
-test('store lines in bulk', (t) => {
+test('store lines in bulk', {timeout}, (t) => {
   t.plan(15)
 
   const instance = elastic({ index, type, consistency, host, port })
