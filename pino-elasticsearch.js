@@ -32,7 +32,6 @@ function pinoElasticSearch (opts) {
 
   const index = opts.index || 'pino'
   const type = opts.type || 'log'
-  const consistency = opts.consistency || 'one'
 
   const writable = new Writable({
     objectMode: true,
@@ -49,7 +48,6 @@ function pinoElasticSearch (opts) {
         }
       }
       client.bulk({
-        consistency,
         body: docs
       }, function (err, result) {
         if (!err) {
@@ -68,8 +66,8 @@ function pinoElasticSearch (opts) {
       })
     },
     write: function (body, enc, cb) {
-      const obj = {index, type, consistency, body}
-      client.create(obj, function (err, data) {
+      const obj = {index, type, body}
+      client.index(obj, function (err, data) {
         if (!err) {
           splitter.emit('insert', data, body)
         } else {
