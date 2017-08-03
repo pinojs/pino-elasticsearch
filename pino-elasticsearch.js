@@ -19,7 +19,14 @@ function pinoElasticSearch (opts) {
     }
 
     var value = parsed.value
-    value.time = (new Date(value.time)).toISOString()
+    if (typeof value === 'string') {
+      value = {
+        data: value,
+        time: (new Date()).toISOString()
+      };
+    } else {
+      value.time = (new Date(value.time)).toISOString()
+    }
 
     return value
   })
