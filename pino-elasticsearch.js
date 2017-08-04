@@ -17,13 +17,13 @@ function pinoElasticSearch (opts) {
       this.emit('unknown', line, parsed.err)
       return
     }
-
     var value = parsed.value
+    console.log(value)
     if (typeof value === 'string') {
       value = {
         data: value,
         time: (new Date()).toISOString()
-      };
+      }
     } else {
       value.time = (new Date(value.time)).toISOString()
     }
@@ -74,6 +74,7 @@ function pinoElasticSearch (opts) {
     },
     write: function (body, enc, cb) {
       const obj = {index, type, body}
+      console.log(obj)
       client.index(obj, function (err, data) {
         if (!err) {
           splitter.emit('insert', data, body)

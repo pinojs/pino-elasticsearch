@@ -7,7 +7,7 @@
     "pino-elasticsearch": "./pino-elasticsearch.js"
   },
   "scripts": {
-    "test": "standard && tap test.js"
+    "test": "standard && tap test/*.test.js"
   },
   "pre-commit": "test",
   "keywords": [
