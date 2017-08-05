@@ -21,10 +21,6 @@ test('make sure log is a valid json', (t) => {
     t.ok(obj, true)
     cb(null, {})
   }
-  // TODO: test it better
-  // Client.prototype.bulk = (obj, cb) => {
-  //   cb(null, {})
-  // }
   const elastic = proxyquire('../', {
     elasticsearch: {
       Client: Client
@@ -32,6 +28,7 @@ test('make sure log is a valid json', (t) => {
   })
   const instance = elastic(options)
   const log = pino(instance)
-  const prettyLog = JSON.stringify({ service: 'test', msg: 'testing' })
+  const prettyLog = `some logs goes here.
+  another log...`
   log.info(['info'], prettyLog)
 })

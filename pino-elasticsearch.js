@@ -18,7 +18,6 @@ function pinoElasticSearch (opts) {
       return
     }
     var value = parsed.value
-    console.log(value)
     if (typeof value === 'string') {
       value = {
         data: value,
@@ -74,14 +73,12 @@ function pinoElasticSearch (opts) {
     },
     write: function (body, enc, cb) {
       const obj = {index, type, body}
-      console.log(obj)
       client.index(obj, function (err, data) {
         if (!err) {
           splitter.emit('insert', data, body)
         } else {
           splitter.emit('insertError', err)
         }
-
         // skip error and continue
         cb()
       })
