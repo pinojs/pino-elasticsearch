@@ -1,7 +1,7 @@
 'use strict'
 
 const pino = require('pino')
-const elastic = require('./')
+const elastic = require('../')
 const tap = require('tap')
 const test = require('tap').test
 const elasticsearch = require('elasticsearch')
