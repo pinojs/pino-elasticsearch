@@ -22,9 +22,10 @@
   "author": "Matteo Collina <hello@matteocollina.com>",
   "license": "MIT",
   "devDependencies": {
-    "pre-commit": "^1.1.3",
-    "standard": "^8.5.0",
     "pino": "^3.0.1",
+    "pre-commit": "^1.1.3",
+    "proxyquire": "^1.8.0",
+    "standard": "^8.5.0",
     "tap": "^8.0.1"
   },
   "dependencies": {
