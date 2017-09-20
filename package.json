@@ -1,6 +1,6 @@
 {
   "name": "pino-elasticsearch",
-  "version": "2.1.0",
+  "version": "2.2.0",
   "description": "Load pino logs into ElasticSearch",
   "main": "pino-elasticsearch",
   "bin": {
@@ -22,21 +22,21 @@
   "author": "Matteo Collina <hello@matteocollina.com>",
   "license": "MIT",
   "devDependencies": {
-    "pino": "^4.0.0",
+    "pino": "^4.7.2",
     "pre-commit": "^1.2.2",
     "proxyquire": "^1.8.0",
     "standard": "^10.0.0",
-    "tap": "^10.0.0"
+    "tap": "^10.7.2"
   },
   "dependencies": {
-    "elasticsearch": "^13.2.0",
+    "aws-sdk": "^2.83.0",
+    "elasticsearch": "^13.3.1",
     "fast-json-parse": "^1.0.3",
+    "http-aws-es": "^3.1.0",
     "minimist": "^1.2.0",
     "pump": "^1.0.2",
     "readable-stream": "^2.3.3",
-    "split2": "^2.1.1",
-    "aws-sdk": "^2.83.0",
-    "http-aws-es":"^3.1.0"
+    "split2": "^2.1.1"
   },
   "repository": {
     "type": "git",
