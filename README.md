@@ -1,22 +1,19 @@
-# pino-elasticsearch&nbsp;&nbsp;[![Build Status](https://travis-ci.org/pinojs/pino-elasticsearch.svg)](https://travis-ci.org/pinojs/pino-elasticsearch)&nbsp;[![Coverage Status](https://coveralls.io/repos/github/pinojs/pino-elasticsearch/badge.svg?branch=master)](https://coveralls.io/github/pinojs/pino-elasticsearch?branch=master)
-
-Load [pino](https://github.com/pinojs/pino) logs into
-[Elasticsearch](https://www.elastic.co/products/elasticsearch).
+# pino-elasticsearch-aws&nbsp;&nbsp;
 
 ## Install
 
 ```
-npm install pino-elasticsearch -g
+npm install pino-elasticsearch-aws -g
 ```
 
 ## Usage
 
 ```
-  pino-elasticsearch
+  pino-elasticsearch-aws
 
   To send pino logs to elasticsearch:
 
-     cat log | pino-elasticsearch --host 192.168.1.42
+     cat log | pino-elasticsearch-aws --host 192.168.1.42
 
   Flags
   -h  | --help              Display Help
