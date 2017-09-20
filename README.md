@@ -18,6 +18,9 @@ npm install pino-elasticsearch -g
 
      cat log | pino-elasticsearch --host 192.168.1.42
 
+  If using AWS Elasticsearch:
+    cat log | pino-elasticsearch  --host https://your-url.us-east-1.es.amazonaws.com --port 443 -c ./aws_config.json
+
   Flags
   -h  | --help              Display Help
   -v  | --version           display Version
@@ -27,6 +30,7 @@ npm install pino-elasticsearch -g
   -t  | --type              the name of the type to use; default: log
   -b  | --size              the number of documents for each bulk insert
   -l  | --trace-level       trace level for the elasticsearch client, default 'error' (info, debug, trace).
+  -c  | --aws-credentials   path to aws_config.json (is using AWS Elasticsearch)
 
 ```
 

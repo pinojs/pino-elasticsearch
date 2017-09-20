@@ -34,7 +34,9 @@
     "minimist": "^1.2.0",
     "pump": "^1.0.2",
     "readable-stream": "^2.3.3",
-    "split2": "^2.1.1"
+    "split2": "^2.1.1",
+    "aws-sdk": "^2.83.0",
+    "http-aws-es":"^3.1.0"
   },
   "repository": {
     "type": "git",
@@ -43,5 +45,8 @@
   "bugs": {
     "url": "https://github.com/pinojs/pino-elasticsearch/issues"
   },
-  "homepage": "https://github.com/pinojs/pino-elasticsearch#readme"
+  "homepage": "https://github.com/pinojs/pino-elasticsearch#readme",
+  "directories": {
+    "test": "test"
+  }
 }

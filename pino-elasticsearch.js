@@ -9,6 +9,7 @@ const split = require('split2')
 const pump = require('pump')
 const fs = require('fs')
 const path = require('path')
+const AWS = require('aws-sdk')
 
 function pinoElasticSearch (opts) {
   const splitter = split(function (line) {
@@ -30,7 +31,10 @@ function pinoElasticSearch (opts) {
     return value
   })
   const client = new elasticsearch.Client({
-    host: opts.host + ':' + opts.port,
+    host: opts.host ? opts.host + ':' + opts.port : undefined,
+    auth: opts.user ? opts.user + ':' + opts.password : undefined,
+    connectionClass: opts['aws-credentials'] ? require('http-aws-es') : undefined,
+    awsConfig: opts['aws-credentials'] ? AWS.config.loadFromPath(opts['aws-credentials']) : undefined,
     log: {
       level: opts['trace-level'] || 'error'
     }
@@ -114,6 +118,7 @@ if (require.main === module) {
       host: 'H',
       port: 'p',
       index: 'i',
+      'aws-credentials': 'c',
       'bulk-size': 'b',
       'trace-level': 'l'
     },

@@ -15,3 +15,5 @@
   -c  | --consistency       the consistency of the write; default: one
   -b  | --size              the number of documents for each bulk insert
   -l  | --trace-level       trace level for the elasticsearch client, default 'error' (info, debug, trace).
+  -c  | --aws-credentials   path to aws_config.json (is using AWS Elasticsearch)
+
