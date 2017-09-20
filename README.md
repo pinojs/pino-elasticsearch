@@ -1,5 +1,8 @@
 # pino-elasticsearch-aws&nbsp;&nbsp;
 
+Add support for AWS Elasticsearch service to pino-elasticsearch.
+Based on https://github.com/pinojs/pino-elasticsearch. 
+
 ## Install
 
 ```
@@ -13,7 +16,7 @@ npm install pino-elasticsearch-aws -g
 
   To send pino logs to elasticsearch:
 
-     cat log | pino-elasticsearch-aws --host 192.168.1.42
+     cat log | pino-elasticsearch-aws --host https://xxxxxxx.us-east-1.es.amazonaws.com --port 443 -c ./aws_config.json
 
   Flags
   -h  | --help              Display Help
