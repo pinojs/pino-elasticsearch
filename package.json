@@ -1,10 +1,10 @@
 {
-  "name": "pino-elasticsearch-aws",
+  "name": "pino-elasticsearch",
   "version": "2.2.6",
   "description": "Load pino logs into ElasticSearch",
-  "main": "pino-elasticsearch-aws",
+  "main": "pino-elasticsearch",
   "bin": {
-    "pino-elasticsearch-aws": "./pino-elasticsearch-aws.js"
+    "pino-elasticsearch": "./pino-elasticsearch.js"
   },
   "scripts": {
     "test": "standard && tap test/*.test.js"

@@ -97,14 +97,13 @@ function pinoElasticSearch (opts) {
 module.exports = pinoElasticSearch
 
 function start (opts) {
-  console.log(opts);
   if (opts.help) {
     console.log(fs.readFileSync(path.join(__dirname, './usage.txt'), 'utf8'))
     return
   }
 
   if (opts.version) {
-    console.log('pino-elasticsearch-aws', require('./package.json').version)
+    console.log('pino-elasticsearch', require('./package.json').version)
     return
   }
 

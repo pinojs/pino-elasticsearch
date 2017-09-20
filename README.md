@@ -1,22 +1,22 @@
-# pino-elasticsearch-aws&nbsp;&nbsp;
+# pino-elasticsearch&nbsp;&nbsp;[![Build Status](https://travis-ci.org/pinojs/pino-elasticsearch.svg)](https://travis-ci.org/pinojs/pino-elasticsearch)&nbsp;[![Coverage Status](https://coveralls.io/repos/github/pinojs/pino-elasticsearch/badge.svg?branch=master)](https://coveralls.io/github/pinojs/pino-elasticsearch?branch=master)
 
-Add support for AWS Elasticsearch service to pino-elasticsearch.
-Based on https://github.com/pinojs/pino-elasticsearch. 
+Load [pino](https://github.com/pinojs/pino) logs into
+[Elasticsearch](https://www.elastic.co/products/elasticsearch).
 
 ## Install
 
 ```
-npm install pino-elasticsearch-aws -g
+npm install pino-elasticsearch -g
 ```
 
 ## Usage
 
 ```
-  pino-elasticsearch-aws
+  pino-elasticsearch
 
   To send pino logs to elasticsearch:
 
-     cat log | pino-elasticsearch-aws --host https://xxxxxxx.us-east-1.es.amazonaws.com --port 443 -c ./aws_config.json
+     cat log | pino-elasticsearch --host 192.168.1.42
 
   Flags
   -h  | --help              Display Help
@@ -27,6 +27,7 @@ npm install pino-elasticsearch-aws -g
   -t  | --type              the name of the type to use; default: log
   -b  | --size              the number of documents for each bulk insert
   -l  | --trace-level       trace level for the elasticsearch client, default 'error' (info, debug, trace).
+  -c  | --aws-credentials   path to aws_config.json (is using AWS Elasticsearch)
 
 ```
 
