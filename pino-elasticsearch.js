@@ -33,6 +33,7 @@ function pinoElasticSearch (opts) {
   const client = new elasticsearch.Client({
     host: opts.host ? opts.host + ':' + opts.port : undefined,
     auth: opts.user ? opts.user + ':' + opts.password : undefined,
+    httpAuth: opts.user ? opts.user + ':' + opts.password : undefined,
     connectionClass: opts['aws-credentials'] ? require('http-aws-es') : undefined,
     awsConfig: opts['aws-credentials'] ? AWS.config.loadFromPath(opts['aws-credentials']) : undefined,
     log: {
