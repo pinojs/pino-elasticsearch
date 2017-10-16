@@ -1,6 +1,6 @@
 {
   "name": "pino-elasticsearch",
-  "version": "2.2.0",
+  "version": "2.2.1",
   "description": "Load pino logs into ElasticSearch",
   "main": "pino-elasticsearch",
   "bin": {
@@ -29,14 +29,14 @@
     "tap": "^10.7.2"
   },
   "dependencies": {
-    "aws-sdk": "^2.83.0",
+    "aws-sdk": "^2.133.0",
     "elasticsearch": "^13.3.1",
     "fast-json-parse": "^1.0.3",
     "http-aws-es": "^3.1.0",
     "minimist": "^1.2.0",
     "pump": "^1.0.2",
     "readable-stream": "^2.3.3",
-    "split2": "^2.1.1"
+    "split2": "^2.2.0"
   },
   "repository": {
     "type": "git",
