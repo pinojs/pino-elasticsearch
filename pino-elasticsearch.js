@@ -77,7 +77,7 @@ function pinoElasticSearch (opts) {
       })
     },
     write: function (body, enc, cb) {
-      const obj = {index, type, body}
+      const obj = { index, type, body }
       client.index(obj, function (err, data) {
         if (!err) {
           splitter.emit('insert', data, body)

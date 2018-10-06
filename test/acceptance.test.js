@@ -23,8 +23,8 @@ tap.tearDown(() => {
 })
 
 tap.beforeEach((done) => {
-  client.indices.delete({index}, () => {
-    client.indices.create({index}, done)
+  client.indices.delete({ index }, () => {
+    client.indices.create({ index }, done)
   })
 })
 
@@ -33,7 +33,7 @@ setTimeout(function () {
   process.exit(1)
 }, 60 * 1000).unref()
 
-test('store a log line', {timeout}, (t) => {
+test('store a log line', { timeout }, (t) => {
   t.plan(3)
 
   const instance = elastic({ index, type, consistency, host, port })
@@ -55,7 +55,7 @@ test('store a log line', {timeout}, (t) => {
   })
 })
 
-test('store an deeply nested log line', {timeout}, (t) => {
+test('store an deeply nested log line', { timeout }, (t) => {
   t.plan(4)
 
   const instance = elastic({ index, type, consistency, host, port })
@@ -85,7 +85,7 @@ test('store an deeply nested log line', {timeout}, (t) => {
   })
 })
 
-test('store lines in bulk', {timeout}, (t) => {
+test('store lines in bulk', { timeout }, (t) => {
   t.plan(15)
 
   const instance = elastic({ index, type, consistency, host, port })
