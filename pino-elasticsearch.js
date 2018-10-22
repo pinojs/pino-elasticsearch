@@ -25,7 +25,7 @@ function pinoElasticSearch (opts) {
         time: (new Date()).toISOString()
       }
     } else {
-      value.time = (new Date(value.time)).toISOString()
+      value.time = (value && value.time) ? (new Date(value.time)).toISOString() :  new Date();
     }
 
     return value
