@@ -22,12 +22,18 @@ function pinoElasticSearch (opts) {
     if (typeof value === 'string') {
       value = {
         data: value,
-        time: (new Date()).toISOString()
+        time: setDateTimeString(value)
       }
     } else {
-      value.time = (value && value.time) ? (new Date(value.time)).toISOString() : new Date()
+      value.time = setDateTimeString(value)
     }
 
+    function setDateTimeString (value) {
+      if (typeof value === 'object' && value.hasOwnProperty('time')) {
+        return (value.time.length > 0) ? new Date(value.time).toISOString() : new Date().toISOString()
+      }
+      return new Date().toISOString()
+    }
     return value
   })
   const client = new elasticsearch.Client({
