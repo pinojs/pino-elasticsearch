@@ -83,7 +83,8 @@ function pinoElasticSearch (opts) {
       })
     },
     write: function (body, enc, cb) {
-      const obj = { index, type, body }
+      var idx = index.replace('%DATE', body.time.substring(0, 10))
+      const obj = { index: idx, type, body }
       client.index(obj, function (err, data) {
         if (!err) {
           splitter.emit('insert', data, body)
