@@ -33,6 +33,29 @@ setTimeout(function () {
   process.exit(1)
 }, 60 * 1000).unref()
 
+test('replaces date in index', { timeout }, (t) => {
+  t.plan(3)
+  const index = 'pinotest-%{DATE}'
+
+  const instance = elastic({ index, type, consistency, host, port })
+  const log = pino(instance)
+
+  log.info('hello world')
+
+  instance.on('insert', (obj, body) => {
+    t.ok('data uploaded')
+
+    client.get({
+      index: index.replace('%{DATE}', new Date().toISOString().substring(0, 10)),
+      type,
+      id: obj._id
+    }, (err, response) => {
+      t.error(err)
+      t.deepEqual(response._source, body, 'obj matches')
+    })
+  })
+})
+
 test('store a log line', { timeout }, (t) => {
   t.plan(3)
 
