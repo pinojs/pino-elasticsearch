@@ -27,6 +27,7 @@ npm install pino-elasticsearch -g
   -H  | --host              the IP address of elasticsearch; default: 127.0.0.1
   -p  | --port              the port of elasticsearch; default: 9200
   -i  | --index             the name of the index to use; default: pino
+                            will replace %{DATE} with the YYYY-MM-DD date
   -t  | --type              the name of the type to use; default: log
   -b  | --size              the number of documents for each bulk insert
   -l  | --trace-level       trace level for the elasticsearch client, default 'error' (info, debug, trace).
