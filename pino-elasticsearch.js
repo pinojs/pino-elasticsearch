@@ -47,7 +47,7 @@ function pinoElasticSearch (opts) {
     }
   })
 
-  const index = opts.index || 'pino'
+  const index = typeof opts.index === 'function' ? opts.index : function () { return opts.index || 'pino' }
   const type = opts.type || 'log'
 
   const writable = new Writable({
@@ -58,7 +58,7 @@ function pinoElasticSearch (opts) {
       for (var i = 0; i < docs.length; i++) {
         if (i % 2 === 0) {
           // add the header
-          docs[i] = { index: { _index: index, _type: type } }
+          docs[i] = { index: { _index: index(), _type: type } }
         } else {
           // add the chunk
           docs[i] = chunks[Math.floor(i / 2)].chunk
@@ -83,7 +83,7 @@ function pinoElasticSearch (opts) {
       })
     },
     write: function (body, enc, cb) {
-      const obj = { index, type, body }
+      const obj = { index: index(), type, body }
       client.index(obj, function (err, data) {
         if (!err) {
           splitter.emit('insert', data, body)
