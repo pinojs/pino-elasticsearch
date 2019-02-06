@@ -58,7 +58,12 @@ function pinoElasticSearch (opts) {
       for (var i = 0; i < docs.length; i++) {
         if (i % 2 === 0) {
           // add the header
-          docs[i] = { index: { _index: index, _type: type } }
+          docs[i] = {
+            index: {
+              _type: type,
+              _index: index.replace('%{DATE}', chunks[Math.floor(i / 2)].chunk.time.substring(0, 10))
+            }
+          }
         } else {
           // add the chunk
           docs[i] = chunks[Math.floor(i / 2)].chunk
@@ -83,7 +88,8 @@ function pinoElasticSearch (opts) {
       })
     },
     write: function (body, enc, cb) {
-      const obj = { index, type, body }
+      var idx = index.replace('%{DATE}', body.time.substring(0, 10))
+      const obj = { index: idx, type, body }
       client.index(obj, function (err, data) {
         if (!err) {
           splitter.emit('insert', data, body)
