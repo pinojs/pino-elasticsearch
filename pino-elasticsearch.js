@@ -3,13 +3,12 @@
 
 const minimist = require('minimist')
 const Writable = require('readable-stream').Writable
-const elasticsearch = require('elasticsearch')
+const { Client } = require('@elastic/elasticsearch')
 const Parse = require('fast-json-parse')
 const split = require('split2')
 const pump = require('pump')
 const fs = require('fs')
 const path = require('path')
-const AWS = require('aws-sdk')
 
 function pinoElasticSearch (opts) {
   const splitter = split(function (line) {
@@ -36,17 +35,10 @@ function pinoElasticSearch (opts) {
     }
     return value
   })
-  const client = new elasticsearch.Client({
-    host: opts.host ? opts.host + ':' + opts.port : undefined,
-    auth: opts.user ? opts.user + ':' + opts.password : undefined,
-    httpAuth: opts.user ? opts.user + ':' + opts.password : undefined,
-    connectionClass: opts['aws-credentials'] ? require('http-aws-es') : undefined,
-    awsConfig: opts['aws-credentials'] ? AWS.config.loadFromPath(opts['aws-credentials']) : undefined,
-    log: {
-      level: opts['trace-level'] || 'error'
-    }
-  })
 
+  const client = new Client({ node: opts.node })
+
+  const esVersion = Number(opts['es-version']) || 7
   const index = opts.index || 'pino'
   const type = opts.type || 'log'
 
@@ -60,7 +52,9 @@ function pinoElasticSearch (opts) {
           // add the header
           docs[i] = {
             index: {
-              _type: type,
+              // from Elasticsearch v8 and above, types will be removed
+              // while in Elasticsearch v7 types are deprecated
+              _type: esVersion >= 7 ? undefined : type,
               _index: index.replace('%{DATE}', chunks[Math.floor(i / 2)].chunk.time.substring(0, 10))
             }
           }
@@ -73,7 +67,7 @@ function pinoElasticSearch (opts) {
         body: docs
       }, function (err, result) {
         if (!err) {
-          const items = result.items
+          const items = result.body.items
           for (var i = 0; i < items.length; i++) {
             // depending on the Elasticsearch version, the bulk response might
             // contain fields 'create' or 'index' (> ES 5.x)
@@ -89,10 +83,12 @@ function pinoElasticSearch (opts) {
     },
     write: function (body, enc, cb) {
       var idx = index.replace('%{DATE}', body.time.substring(0, 10))
-      const obj = { index: idx, type, body }
+      // from Elasticsearch v8 and above, types will be removed
+      // while in Elasticsearch v7 types are deprecated
+      const obj = { index: idx, type: esVersion >= 7 ? undefined : type, body }
       client.index(obj, function (err, data) {
         if (!err) {
-          splitter.emit('insert', data, body)
+          splitter.emit('insert', data.body, body)
         } else {
           splitter.emit('insertError', err)
         }
@@ -128,16 +124,13 @@ if (require.main === module) {
     alias: {
       version: 'v',
       help: 'h',
-      host: 'H',
-      port: 'p',
+      node: 'n',
       index: 'i',
-      'aws-credentials': 'c',
       'bulk-size': 'b',
       'trace-level': 'l'
     },
     default: {
-      host: 'localhost',
-      port: 9200
+      node: 'http://localhost:9200'
     }
   }))
 }
