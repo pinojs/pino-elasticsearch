@@ -10,8 +10,7 @@ const options = {
   index: 'pinotest',
   type: 'log',
   consistency: 'one',
-  host: 'localhost',
-  port: 9200
+  node: 'http://localhost:9200'
 }
 
 test('make sure date format is valid', (t) => {
@@ -19,10 +18,11 @@ test('make sure date format is valid', (t) => {
   t.equal(fix.datetime.object, fix.datetime.string)
   t.end()
 })
+
 test('make sure log is a valid json', (t) => {
   t.plan(4)
   const Client = function (config) {
-    t.equal(config.host, `${options.host}:${options.port}`)
+    t.equal(config.node, options.node)
   }
   Client.prototype.index = (obj, cb) => {
     t.ok(obj, true)
@@ -31,11 +31,47 @@ test('make sure log is a valid json', (t) => {
     cb(null, {})
   }
   const elastic = proxyquire('../', {
-    elasticsearch: {
-      Client: Client
-    }
+    '@elastic/elasticsearch': { Client }
   })
   const instance = elastic(options)
+  const log = pino(instance)
+  const prettyLog = `some logs goes here.
+  another log...`
+  log.info(['info'], prettyLog)
+})
+
+test('Uses the type parameter only with ES < 7 / 1', (t) => {
+  t.plan(2)
+  const Client = function (config) {
+    t.equal(config.node, options.node)
+  }
+  Client.prototype.index = (obj, cb) => {
+    t.strictEqual(obj.type, 'log')
+    cb(null, {})
+  }
+  const elastic = proxyquire('../', {
+    '@elastic/elasticsearch': { Client }
+  })
+  const instance = elastic(Object.assign(options, { 'es-version': 6 }))
+  const log = pino(instance)
+  const prettyLog = `some logs goes here.
+  another log...`
+  log.info(['info'], prettyLog)
+})
+
+test('Uses the type parameter only with ES < 7 / 2', (t) => {
+  t.plan(2)
+  const Client = function (config) {
+    t.equal(config.node, options.node)
+  }
+  Client.prototype.index = (obj, cb) => {
+    t.strictEqual(obj.type, undefined)
+    cb(null, {})
+  }
+  const elastic = proxyquire('../', {
+    '@elastic/elasticsearch': { Client }
+  })
+  const instance = elastic(Object.assign(options, { 'es-version': 7 }))
   const log = pino(instance)
   const prettyLog = `some logs goes here.
   another log...`
