@@ -16,28 +16,30 @@ npm install pino-elasticsearch -g
 
   To send pino logs to elasticsearch:
 
-     cat log | pino-elasticsearch --host 192.168.1.42
-
-  If using AWS Elasticsearch:
-    cat log | pino-elasticsearch  --host https://your-url.us-east-1.es.amazonaws.com --port 443 -c ./aws_config.json
+     cat log | pino-elasticsearch --node http://localhost:9200
 
   Flags
   -h  | --help              Display Help
   -v  | --version           display Version
-  -H  | --host              the IP address of elasticsearch; default: 127.0.0.1
-  -p  | --port              the port of elasticsearch; default: 9200
+  -n  | --node              the URL where Elasticsearch is running
   -i  | --index             the name of the index to use; default: pino
                             will replace %{DATE} with the YYYY-MM-DD date
   -t  | --type              the name of the type to use; default: log
   -b  | --size              the number of documents for each bulk insert
   -l  | --trace-level       trace level for the elasticsearch client, default 'error' (info, debug, trace).
-  -c  | --aws-credentials   path to aws_config.json (is using AWS Elasticsearch)
+        --es-version        specify the major version number of Elasticsearch (eg: 5, 6, 7)
+                            (this is needed only if you are using Elasticsearch <= 7)
 
 ```
 
 You can then use [Kibana](https://www.elastic.co/products/kibana) to
 browse and visualize your logs.
 
+### Authentication
+If you need to use basic authentication to connect with the Elasticsearch cluster, pass the credentials in the URL:
+```
+cat log | pino-elasticsearch --node https://user:pwd@localhost:9200
+```
 ## Setup and Testing
 
 Setting up pino-elasticsearch is easy, and you can use the bundled
