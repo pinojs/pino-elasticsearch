@@ -19,6 +19,10 @@ function pinoElasticSearch (opts) {
       return
     }
     var value = parsed.value
+    if (typeof value === 'boolean') {
+      this.emit('unknown', line, 'Boolean value ignored')
+      return
+    }
     if (typeof value === 'string') {
       value = {
         data: value,
