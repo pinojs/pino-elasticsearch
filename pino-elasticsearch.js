@@ -23,7 +23,11 @@ function pinoElasticSearch (opts) {
       this.emit('unknown', line, 'Boolean value ignored')
       return
     }
-    if (typeof value === 'string') {
+    if (value === null) {
+      this.emit('unknown', line, 'Null value ignored')
+      return
+    }
+    if (typeof value !== 'object') {
       value = {
         data: value,
         time: setDateTimeString(value)
