@@ -33,7 +33,8 @@ npm install pino-elasticsearch -g
 ```
 
 You can then use [Kibana](https://www.elastic.co/products/kibana) to
-browse and visualize your logs.
+browse and visualize your logs.  
+**Note:** This transport works only with Elasticsearch version ≥ 5.
 
 ### Authentication
 If you need to use basic authentication to connect with the Elasticsearch cluster, pass the credentials in the URL:
