@@ -55,6 +55,44 @@ test('store a log line', { timeout }, (t) => {
   })
 })
 
+test('Ignores a boolean line even though it is JSON-parseable', { timeout }, (t) => {
+  t.plan(2)
+
+  const instance = elastic({ index, type, consistency, host, port })
+
+  instance.on('unknown', (obj, body) => {
+    t.equal(obj, 'true', 'Object is parsed')
+    t.equal(body, 'Boolean value ignored', 'Message is emitted')
+  })
+
+  instance.write('true\n')
+})
+
+test('Ignores "null" being parsed as json', { timeout }, (t) => {
+  t.plan(2)
+
+  const instance = elastic({ index, type, consistency, host, port })
+
+  instance.on('unknown', (obj, body) => {
+    t.equal(obj, 'null', 'Object is parsed')
+    t.equal(body, 'Null value ignored', 'Message is emitted')
+  })
+
+  instance.write('null\n')
+})
+
+test('Can process number being parsed as json', { timeout }, (t) => {
+  t.plan(0)
+
+  const instance = elastic({ index, type, consistency, host, port })
+
+  instance.on('unknown', (obj, body) => {
+    t.error(obj, body)
+  })
+
+  instance.write('12\n')
+})
+
 test('store an deeply nested log line', { timeout }, (t) => {
   t.plan(4)
 

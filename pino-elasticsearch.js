@@ -19,7 +19,15 @@ function pinoElasticSearch (opts) {
       return
     }
     var value = parsed.value
-    if (typeof value === 'string') {
+    if (typeof value === 'boolean') {
+      this.emit('unknown', line, 'Boolean value ignored')
+      return
+    }
+    if (value === null) {
+      this.emit('unknown', line, 'Null value ignored')
+      return
+    }
+    if (typeof value !== 'object') {
       value = {
         data: value,
         time: setDateTimeString(value)
