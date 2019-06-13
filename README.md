@@ -38,11 +38,11 @@ npm install pino-elasticsearch -g
 You can then use [Kibana](https://www.elastic.co/products/kibana) to
 browse and visualize your logs.
 
-## Used as a module
+## Use as a module
 
-use pino-elasticsearch as a module is sample, use pino-multi-stream to send log to multi transport, for example:
+use pino-elasticsearch as a module is simple, use [pino-multi-stream](https://www.npmjs.com/package/pino-multi-stream) to send log to multi transport, for example:
 
-```
+```js
 const pinoms = require('pino-multi-stream')
 const pinoEs = require('pino-elasticsearch')({
     host: '192.168.1.220',
@@ -65,7 +65,8 @@ logger.warn('warn')
 logger.error('error')
 
 ```
-*** Notice, create the pino-elasticsearch must set host & port ***
+
+*** Notice, the `host` and `port` parameters of `pino-elasticsearch` are required ***
 
 ## Setup and Testing
 
