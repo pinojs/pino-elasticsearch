@@ -28,3 +28,9 @@ addons:
   apt:
     packages:
       - oracle-java9-installer
+
+before_script:
+  - sleep 15
+
+script:
+  - npm test
