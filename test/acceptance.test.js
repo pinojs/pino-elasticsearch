@@ -60,7 +60,7 @@ test('store a log line', { timeout }, (t) => {
 test('Ignores a boolean line even though it is JSON-parseable', { timeout }, (t) => {
   t.plan(2)
 
-  const instance = elastic({ index, type, consistency, host, port })
+  const instance = elastic({ index, type, consistency, node })
 
   instance.on('unknown', (obj, body) => {
     t.equal(obj, 'true', 'Object is parsed')
@@ -73,7 +73,7 @@ test('Ignores a boolean line even though it is JSON-parseable', { timeout }, (t)
 test('Ignores "null" being parsed as json', { timeout }, (t) => {
   t.plan(2)
 
-  const instance = elastic({ index, type, consistency, host, port })
+  const instance = elastic({ index, type, consistency, node })
 
   instance.on('unknown', (obj, body) => {
     t.equal(obj, 'null', 'Object is parsed')
@@ -86,7 +86,7 @@ test('Ignores "null" being parsed as json', { timeout }, (t) => {
 test('Can process number being parsed as json', { timeout }, (t) => {
   t.plan(0)
 
-  const instance = elastic({ index, type, consistency, host, port })
+  const instance = elastic({ index, type, consistency, node })
 
   instance.on('unknown', (obj, body) => {
     t.error(obj, body)
