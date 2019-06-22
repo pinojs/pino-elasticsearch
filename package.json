@@ -32,6 +32,7 @@
     "@elastic/elasticsearch": "^7.1.0",
     "fast-json-parse": "^1.0.3",
     "minimist": "^1.2.0",
+    "pino-to-ecs": "^0.1.0",
     "pump": "^3.0.0",
     "readable-stream": "^3.4.0",
     "split2": "^3.1.1"

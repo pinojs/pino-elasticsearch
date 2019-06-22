@@ -9,6 +9,7 @@ const split = require('split2')
 const pump = require('pump')
 const fs = require('fs')
 const path = require('path')
+const toEcs = require('pino-to-ecs')
 
 function pinoElasticSearch (opts) {
   const splitter = split(function (line) {
@@ -47,6 +48,7 @@ function pinoElasticSearch (opts) {
   const client = new Client({ node: opts.node })
 
   const esVersion = Number(opts['es-version']) || 7
+  const useEcs = !!opts['ecs']
   const index = opts.index || 'pino'
   const type = opts.type || 'log'
 
@@ -68,7 +70,11 @@ function pinoElasticSearch (opts) {
           }
         } else {
           // add the chunk
-          docs[i] = chunks[Math.floor(i / 2)].chunk
+          if (useEcs) {
+            docs[i] = toEcs(chunks[Math.floor(i / 2)].chunk)
+          } else {
+            docs[i] = chunks[Math.floor(i / 2)].chunk
+          }
         }
       }
       client.bulk({
@@ -80,7 +86,7 @@ function pinoElasticSearch (opts) {
             // depending on the Elasticsearch version, the bulk response might
             // contain fields 'create' or 'index' (> ES 5.x)
             const create = items[i].index || items[i].create
-            splitter.emit('insert', create, chunks[i].chunk)
+            splitter.emit('insert', create, docs[i * 2 + 1])
           }
         } else {
           splitter.emit('insertError', err)
@@ -93,10 +99,14 @@ function pinoElasticSearch (opts) {
       var idx = index.replace('%{DATE}', body.time.substring(0, 10))
       // from Elasticsearch v8 and above, types will be removed
       // while in Elasticsearch v7 types are deprecated
-      const obj = { index: idx, type: esVersion >= 7 ? undefined : type, body }
+      const obj = {
+        index: idx,
+        type: esVersion >= 7 ? undefined : type,
+        body: useEcs ? toEcs(body) : body
+      }
       client.index(obj, function (err, data) {
         if (!err) {
-          splitter.emit('insert', data.body, body)
+          splitter.emit('insert', data.body, obj.body)
         } else {
           splitter.emit('insertError', err)
         }
