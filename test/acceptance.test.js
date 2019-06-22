@@ -216,7 +216,7 @@ test('Use ecs format', { timeout }, (t) => {
   log.info('hello world')
 
   instance.on('insert', (obj, body) => {
-    t.type(body.ecs, 'object')
+    t.deepEqual(body.ecs, { version: '1.0.0' })
     t.type(body['@timestamp'], 'string')
     t.assertNot(body.time)
   })

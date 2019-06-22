@@ -85,7 +85,7 @@ test('ecs format', (t) => {
   }
   Client.prototype.index = (obj, cb) => {
     t.ok(obj, true)
-    t.type(obj.body.ecs, 'object')
+    t.deepEqual(obj.body.ecs, { version: '1.0.0' })
     t.type(obj.body['@timestamp'], 'string')
     t.assertNot(obj.body.time)
     t.match(obj.body['@timestamp'], matchISOString)
