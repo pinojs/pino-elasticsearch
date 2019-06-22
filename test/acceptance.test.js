@@ -202,3 +202,22 @@ test('replaces date in index during bulk insert', { timeout }, (t) => {
     }, refreshInterval)
   })
 })
+
+test('Use ecs format', { timeout }, (t) => {
+  t.plan(15)
+
+  const instance = elastic({ index, type, consistency, node, 'es-version': esVersion, ecs: true })
+  const log = pino(instance)
+
+  log.info('hello world')
+  log.info('hello world')
+  log.info('hello world')
+  log.info('hello world')
+  log.info('hello world')
+
+  instance.on('insert', (obj, body) => {
+    t.type(body.ecs, 'object')
+    t.type(body['@timestamp'], 'string')
+    t.assertNot(body.time)
+  })
+})

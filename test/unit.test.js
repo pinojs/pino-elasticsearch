@@ -77,3 +77,26 @@ test('Uses the type parameter only with ES < 7 / 2', (t) => {
   another log...`
   log.info(['info'], prettyLog)
 })
+
+test('ecs format', (t) => {
+  t.plan(6)
+  const Client = function (config) {
+    t.equal(config.node, options.node)
+  }
+  Client.prototype.index = (obj, cb) => {
+    t.ok(obj, true)
+    t.type(obj.body.ecs, 'object')
+    t.type(obj.body['@timestamp'], 'string')
+    t.assertNot(obj.body.time)
+    t.match(obj.body['@timestamp'], matchISOString)
+    cb(null, {})
+  }
+  const elastic = proxyquire('../', {
+    '@elastic/elasticsearch': { Client }
+  })
+  const instance = elastic(Object.assign(options, { ecs: true }))
+  const log = pino(instance)
+  const prettyLog = `some logs goes here.
+  another log...`
+  log.info(['info'], prettyLog)
+})
