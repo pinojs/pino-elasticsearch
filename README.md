@@ -33,6 +33,28 @@ npm install pino-elasticsearch -g
 
 ```
 
+### Usage as module
+
+```js
+const pino = require('pino')
+const pinoElastic = require('pino-elasticsearch')
+
+const streamToElastic = pinoElastic({
+  index: 'an-index',
+  type: 'log',
+  consistency: 'one',
+  node: 'http://localhost:9200',
+  'es-version': 6,
+  'bulk-size': 200,
+  ecs: true
+})
+
+const logger = pino({ level: 'info' }, streamToElastic)
+
+logger.info('hello world')
+// ...
+```
+
 You can then use [Kibana](https://www.elastic.co/products/kibana) to
 browse and visualize your logs.  
 **Note:** This transport works only with Elasticsearch version ≥ 5.
