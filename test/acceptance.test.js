@@ -1,6 +1,7 @@
 'use strict'
 
 const pino = require('pino')
+const es = require('is-elasticsearch-running')()
 const elastic = require('../')
 const tap = require('tap')
 const test = require('tap').test
@@ -20,14 +21,14 @@ tap.tearDown(() => {
 
 var esVersion = 7
 
-tap.beforeEach((done) => {
-  client.info((err, result) => {
-    if (err) throw err
-    esVersion = Number(result.body.version.number.split('.')[0])
-    client.indices.delete({ index }, () => {
-      client.indices.create({ index }, done)
-    })
-  })
+tap.beforeEach(async () => {
+  if (!await es.isRunning()) {
+    await es.waitCluster()
+  }
+  const result = await client.info()
+  esVersion = Number(result.body.version.number.split('.')[0])
+  await client.indices.delete({ index }, { ignore: [404] })
+  await client.indices.create({ index })
 })
 
 setTimeout(function () {
