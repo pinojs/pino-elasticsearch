@@ -1,4 +1,4 @@
-# pino-elasticsearch&nbsp;&nbsp;[![Build Status](https://github.com/pino/pino-elasticsearch/workflows/ci/badge.svg)](https://github.com/pinojs/pino-elasticsearch/actions)&nbsp;[![Coverage Status](https://coveralls.io/repos/github/pinojs/pino-elasticsearch/badge.svg?branch=master)](https://coveralls.io/github/pinojs/pino-elasticsearch?branch=master)
+# pino-elasticsearch&nbsp;&nbsp;[![Build Status](https://github.com/pinojs/pino-elasticsearch/workflows/CI/badge.svg)](https://github.com/pinojs/pino-elasticsearch/actions)&nbsp;[![Coverage Status](https://coveralls.io/repos/github/pinojs/pino-elasticsearch/badge.svg?branch=master)](https://coveralls.io/github/pinojs/pino-elasticsearch?branch=master)
 
 Load [pino](https://github.com/pinojs/pino) logs into
 [Elasticsearch](https://www.elastic.co/products/elasticsearch).
