@@ -21,7 +21,6 @@ jobs:
       run: |
         npm install
         docker-compose -f docker-compose-v7.yml up -d
-        sleep 30
         npm test
       env:
         CI: true
