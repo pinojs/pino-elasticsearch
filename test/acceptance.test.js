@@ -25,7 +25,9 @@ var es
 tap.beforeEach(async () => {
   if (es) {
     es = IER()
-    await es.waitCluster()
+    if (!await es.isRunning()) {
+      await es.waitCluster()
+    }
   }
   const result = await client.info()
   esVersion = Number(result.body.version.number.split('.')[0])

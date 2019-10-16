@@ -20,7 +20,8 @@ jobs:
     - name: npm install, and test
       run: |
         npm install
-        docker-compose -f docker-compose-v7.yml up -d
+        docker-compose -f docker-compose-v7-es-only.yml up -d
+        sleep 10
         npm test
       env:
         CI: true
