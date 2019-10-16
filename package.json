@@ -7,7 +7,7 @@
     "pino-elasticsearch": "./pino-elasticsearch.js"
   },
   "scripts": {
-    "test": "standard && tap test/*.test.js --no-esm -j 1 --no-coverage"
+    "test": "standard && tap test/*.test.js --no-esm -j 1 --no-coverage --timeout 120"
   },
   "pre-commit": "test",
   "keywords": [
