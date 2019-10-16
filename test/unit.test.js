@@ -2,7 +2,6 @@
 
 const pino = require('pino')
 const proxyquire = require('proxyquire')
-const es = require('is-elasticsearch-running')()
 const test = require('tap').test
 const fix = require('./fixtures')
 
@@ -13,11 +12,6 @@ const options = {
   consistency: 'one',
   node: 'http://localhost:9200'
 }
-
-test('Wait for elasticsearch', async t => {
-  await es.waitCluster()
-  t.pass('Elasticsearch is up and running')
-})
 
 test('make sure date format is valid', (t) => {
   t.type(fix.datetime.object, 'string')
