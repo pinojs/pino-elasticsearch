@@ -38,7 +38,12 @@ function pinoElasticSearch (opts) {
 
     function setDateTimeString (value) {
       if (typeof value === 'object' && value.hasOwnProperty('time')) {
-        return (value.time.length > 0) ? new Date(value.time).toISOString() : new Date().toISOString()
+        if (
+          (typeof value.time === 'string' && value.time.length) ||
+          (typeof value.time === 'number' && value.time >= 0)
+        ) {
+          return new Date(value.time).toISOString()
+        }
       }
       return new Date().toISOString()
     }
