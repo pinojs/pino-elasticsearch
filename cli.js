@@ -21,18 +21,16 @@ function start (opts) {
   pump(process.stdin, pinoElasticSearch(opts))
 }
 
-if (require.main === module) {
-  start(minimist(process.argv.slice(2), {
-    alias: {
-      version: 'v',
-      help: 'h',
-      node: 'n',
-      index: 'i',
-      'bulk-size': 'b',
-      'trace-level': 'l'
-    },
-    default: {
-      node: 'http://localhost:9200'
-    }
-  }))
-}
+start(minimist(process.argv.slice(2), {
+  alias: {
+    version: 'v',
+    help: 'h',
+    node: 'n',
+    index: 'i',
+    'bulk-size': 'b',
+    'trace-level': 'l'
+  },
+  default: {
+    node: 'http://localhost:9200'
+  }
+}))
