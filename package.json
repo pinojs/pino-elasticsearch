@@ -2,9 +2,9 @@
   "name": "pino-elasticsearch",
   "version": "4.2.0",
   "description": "Load pino logs into ElasticSearch",
-  "main": "pino-elasticsearch",
+  "main": "./lib.js",
   "bin": {
-    "pino-elasticsearch": "./pino-elasticsearch.js"
+    "pino-elasticsearch": "./cli.js"
   },
   "scripts": {
     "test": "standard && tap test/*.test.js --no-esm -j 1 --no-coverage --timeout 120"
