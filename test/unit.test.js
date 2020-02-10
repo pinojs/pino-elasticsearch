@@ -40,6 +40,27 @@ test('make sure log is a valid json', (t) => {
   log.info(['info'], prettyLog)
 })
 
+test('date can be a number', (t) => {
+  t.plan(1)
+  const Client = function (config) {}
+
+  const threeDaysInMillis = 3 * 24 * 60 * 60 * 1000
+  const time = new Date(Date.now() - threeDaysInMillis)
+
+  Client.prototype.index = (obj, cb) => {
+    t.equal(obj.body.time, time.toISOString())
+    cb(null, {})
+  }
+  const elastic = proxyquire('../', {
+    '@elastic/elasticsearch': { Client }
+  })
+  const instance = elastic(options)
+  const log = pino(instance)
+  log.info({
+    time: time.getTime()
+  })
+})
+
 test('Uses the type parameter only with ES < 7 / 1', (t) => {
   t.plan(2)
   const Client = function (config) {

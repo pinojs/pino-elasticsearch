@@ -1,4 +1,4 @@
-# pino-elasticsearch&nbsp;&nbsp;[![Build Status](https://travis-ci.org/pinojs/pino-elasticsearch.svg)](https://travis-ci.org/pinojs/pino-elasticsearch)&nbsp;[![Coverage Status](https://coveralls.io/repos/github/pinojs/pino-elasticsearch/badge.svg?branch=master)](https://coveralls.io/github/pinojs/pino-elasticsearch?branch=master)
+# pino-elasticsearch&nbsp;&nbsp;[![Build Status](https://github.com/pinojs/pino-elasticsearch/workflows/CI/badge.svg)](https://github.com/pinojs/pino-elasticsearch/actions)&nbsp;[![Coverage Status](https://coveralls.io/repos/github/pinojs/pino-elasticsearch/badge.svg?branch=master)](https://coveralls.io/github/pinojs/pino-elasticsearch?branch=master)
 
 Load [pino](https://github.com/pinojs/pino) logs into
 [Elasticsearch](https://www.elastic.co/products/elasticsearch).
@@ -31,6 +31,28 @@ npm install pino-elasticsearch -g
       | --es-version        specify the major version number of Elasticsearch (eg: 5, 6, 7)
                             (this is needed only if you are using Elasticsearch <= 7)
 
+```
+
+### Usage as module
+
+```js
+const pino = require('pino')
+const pinoElastic = require('pino-elasticsearch')
+
+const streamToElastic = pinoElastic({
+  index: 'an-index',
+  type: 'log',
+  consistency: 'one',
+  node: 'http://localhost:9200',
+  'es-version': 6,
+  'bulk-size': 200,
+  ecs: true
+})
+
+const logger = pino({ level: 'info' }, streamToElastic)
+
+logger.info('hello world')
+// ...
 ```
 
 You can then use [Kibana](https://www.elastic.co/products/kibana) to
