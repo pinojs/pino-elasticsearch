@@ -61,7 +61,7 @@ browse and visualize your logs.
 
 #### Dynamic index
 
-It is possible to customize the index name at every log just providing a function to the `index` option:
+It is possible to customize the index name for every log line just providing a function to the `index` option:
 
 ```js
 const pino = require('pino')
@@ -69,7 +69,7 @@ const pinoElastic = require('pino-elasticsearch')
 
 const streamToElastic = pinoElastic({
   index: function (logTime) {
-    // the logTime is a string in ISO time when the logs happened
+    // the logTime is a ISO 8601 formatted string of the log line
     return `awesome-app-${logTime.substring(5, 10)}`
   },
   consistency: 'one',
