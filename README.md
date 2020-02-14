@@ -59,6 +59,27 @@ You can then use [Kibana](https://www.elastic.co/products/kibana) to
 browse and visualize your logs.  
 **Note:** This transport works only with Elasticsearch version ≥ 5.
 
+#### Dynamic index
+
+It is possible to customize the index name for every log line just providing a function to the `index` option:
+
+```js
+const pino = require('pino')
+const pinoElastic = require('pino-elasticsearch')
+
+const streamToElastic = pinoElastic({
+  index: function (logTime) {
+    // the logTime is a ISO 8601 formatted string of the log line
+    return `awesome-app-${logTime.substring(5, 10)}`
+  },
+  consistency: 'one',
+  node: 'http://localhost:9200'
+})
+// ...
+```
+
+The function **must** be sync, doesn't throw and return a string.
+
 ### Authentication
 If you need to use basic authentication to connect with the Elasticsearch cluster, pass the credentials in the URL:
 ```

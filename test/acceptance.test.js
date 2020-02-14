@@ -221,3 +221,68 @@ test('Use ecs format', { timeout }, (t) => {
     t.assertNot(body.time)
   })
 })
+
+test('dynamic index name', { timeout }, (t) => {
+  t.plan(4)
+
+  let indexNameGenerated
+  const index = function (time) {
+    t.like(time, new Date().toISOString().substring(0, 10))
+    indexNameGenerated = `dynamic-index-${Math.random()}`
+    return indexNameGenerated
+  }
+
+  const instance = elastic({ index, type, consistency, node, 'es-version': esVersion })
+  const log = pino(instance)
+
+  log.info('hello world')
+
+  instance.on('insert', (obj, body) => {
+    t.ok('data uploaded')
+
+    client.get({
+      index: indexNameGenerated,
+      type: esVersion >= 7 ? undefined : type,
+      id: obj._id
+    }, (err, response) => {
+      t.error(err)
+      t.deepEqual(response.body._source, body, 'obj matches')
+    })
+  })
+})
+
+test('dynamic index name during bulk insert', { timeout }, (t) => {
+  t.plan(20)
+
+  let indexNameGenerated
+  const index = function (time) {
+    t.like(time, new Date().toISOString().substring(0, 10)) // called 5 times
+
+    if (!indexNameGenerated) {
+      indexNameGenerated = `dynamic-index-${Math.random()}`
+    }
+    return indexNameGenerated
+  }
+  const instance = elastic({ index, type, consistency, node, 'es-version': esVersion })
+  const log = pino(instance)
+
+  log.info('hello world')
+  log.info('hello world')
+  log.info('hello world')
+  log.info('hello world')
+  log.info('hello world')
+
+  instance.on('insert', (obj, body) => {
+    t.ok(obj, 'data uploaded')
+    setTimeout(function () {
+      client.get({
+        index: indexNameGenerated,
+        type: esVersion >= 7 ? undefined : type,
+        id: obj._id
+      }, (err, response) => {
+        t.error(err)
+        t.deepEqual(response.body._source, body, 'obj matches')
+      })
+    }, refreshInterval)
+  })
+})

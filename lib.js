@@ -49,6 +49,7 @@ function pinoElasticSearch (opts) {
   const esVersion = Number(opts['es-version']) || 7
   const useEcs = !!opts['ecs']
   const index = opts.index || 'pino'
+  const buildIndexName = typeof index === 'function' ? index : null
   const type = opts.type || 'log'
 
   const writable = new Writable({
@@ -64,7 +65,7 @@ function pinoElasticSearch (opts) {
               // from Elasticsearch v8 and above, types will be removed
               // while in Elasticsearch v7 types are deprecated
               _type: esVersion >= 7 ? undefined : type,
-              _index: index.replace('%{DATE}', chunks[Math.floor(i / 2)].chunk.time.substring(0, 10))
+              _index: getIndexName(chunks[Math.floor(i / 2)].chunk.time)
             }
           }
         } else {
@@ -95,7 +96,7 @@ function pinoElasticSearch (opts) {
       })
     },
     write: function (body, enc, cb) {
-      var idx = index.replace('%{DATE}', body.time.substring(0, 10))
+      var idx = getIndexName(body.time)
       // from Elasticsearch v8 and above, types will be removed
       // while in Elasticsearch v7 types are deprecated
       const obj = {
@@ -118,6 +119,13 @@ function pinoElasticSearch (opts) {
   pump(splitter, writable)
 
   return splitter
+
+  function getIndexName (time) {
+    if (buildIndexName) {
+      return buildIndexName(time)
+    }
+    return index.replace('%{DATE}', time.substring(0, 10))
+  }
 }
 
 module.exports = pinoElasticSearch
