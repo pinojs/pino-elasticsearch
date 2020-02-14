@@ -1,3 +1,7 @@
+'use strict'
+
+/* eslint no-prototype-builtins: 0 */
+
 const pump = require('pump')
 const split = require('split2')
 const Writable = require('readable-stream').Writable
@@ -47,7 +51,7 @@ function pinoElasticSearch (opts) {
   const client = new Client({ node: opts.node })
 
   const esVersion = Number(opts['es-version']) || 7
-  const useEcs = !!opts['ecs']
+  const useEcs = !!opts.ecs
   const index = opts.index || 'pino'
   const buildIndexName = typeof index === 'function' ? index : null
   const type = opts.type || 'log'
