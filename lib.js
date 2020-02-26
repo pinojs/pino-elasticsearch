@@ -52,7 +52,7 @@ function pinoElasticSearch (opts) {
 
   const esVersion = Number(opts['es-version']) || 7
   const useEcs = !!opts.ecs
-  const index = opts.index || 'pino'
+  const index = opts['require-index'] ? require((opts['require-index'] || '').replace(/^\./, process.cwd)) : (opts.index || 'pino')
   const buildIndexName = typeof index === 'function' ? index : null
   const type = opts.type || 'log'
 

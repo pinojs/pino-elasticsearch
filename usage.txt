@@ -12,6 +12,9 @@
   -n  | --node              the URL where Elasticsearch is running
   -i  | --index             the name of the index to use; default: pino
                             will replace %{DATE} with the YYYY-MM-DD date
+  -r  | --require-index     A path resolving to a JavaScript module that exports a function which
+			    can be used to dynamically build an index name.  Analogous to node's
+			    -r switch.  See `Dynamic index`
   -t  | --type              the name of the type to use; default: log
   -b  | --size              the number of documents for each bulk insert
   -l  | --trace-level       trace level for the elasticsearch client, default 'error' (info, debug, trace).

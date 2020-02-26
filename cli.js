@@ -27,6 +27,7 @@ start(minimist(process.argv.slice(2), {
     help: 'h',
     node: 'n',
     index: 'i',
+    'require-index': 'r',
     'bulk-size': 'b',
     'trace-level': 'l'
   },
