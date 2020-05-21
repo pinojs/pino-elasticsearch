@@ -27,7 +27,7 @@ npm install pino-elasticsearch -g
   -t  | --type              the name of the type to use; default: log
   -b  | --size              the number of documents for each bulk insert
   -l  | --trace-level       trace level for the elasticsearch client, default 'error' (info, debug, trace).
-      | --ecs               format the logs with Elastic Common Schema
+      | --ecs               format the logs with Elastic Common Schema [DEPRECATED]
       | --es-version        specify the major version number of Elasticsearch (eg: 5, 6, 7)
                             (this is needed only if you are using Elasticsearch <= 7)
 
@@ -41,15 +41,36 @@ const pinoElastic = require('pino-elasticsearch')
 
 const streamToElastic = pinoElastic({
   index: 'an-index',
-  type: 'log',
   consistency: 'one',
   node: 'http://localhost:9200',
-  'es-version': 6,
-  'bulk-size': 200,
-  ecs: true
+  'es-version': 7,
+  'bulk-size': 200
 })
 
 const logger = pino({ level: 'info' }, streamToElastic)
+
+logger.info('hello world')
+// ...
+```
+
+### ECS support
+
+If you want to use [Elastic Common Schema](https://www.elastic.co/guide/en/ecs/current/index.html), you should install [`@elastic/ecs-pino-format`](https://github.com/elastic/ecs-logging-js/tree/master/loggers/pino), as the `ecs` option of this module has been deprecated.
+
+```js
+const pino = require('pino')
+const ecsFormat = require('@elastic/ecs-pino-format')()
+const pinoElastic = require('pino-elasticsearch')
+
+const streamToElastic = pinoElastic({
+  index: 'an-index',
+  consistency: 'one',
+  node: 'http://localhost:9200',
+  'es-version': 7,
+  'bulk-size': 200
+})
+
+const logger = pino({ level: 'info',  ...ecsFormat  }, streamToElastic)
 
 logger.info('hello world')
 // ...
