@@ -7,7 +7,6 @@ const split = require('split2')
 const Writable = require('readable-stream').Writable
 const { Client } = require('@elastic/elasticsearch')
 const Parse = require('fast-json-parse')
-const toEcs = require('pino-to-ecs')
 
 function pinoElasticSearch (opts) {
   const splitter = split(function (line) {
@@ -51,12 +50,9 @@ function pinoElasticSearch (opts) {
   const client = new Client({ node: opts.node })
 
   const esVersion = Number(opts['es-version']) || 7
-  const useEcs = !!opts.ecs
   const index = opts.index || 'pino'
   const buildIndexName = typeof index === 'function' ? index : null
   const type = opts.type || 'log'
-
-  if (useEcs) ecsWarning()
 
   const writable = new Writable({
     objectMode: true,
@@ -76,11 +72,7 @@ function pinoElasticSearch (opts) {
           }
         } else {
           // add the chunk
-          if (useEcs) {
-            docs[i] = toEcs(chunks[Math.floor(i / 2)].chunk)
-          } else {
-            docs[i] = chunks[Math.floor(i / 2)].chunk
-          }
+          docs[i] = chunks[Math.floor(i / 2)].chunk
         }
       }
       client.bulk({
@@ -108,7 +100,7 @@ function pinoElasticSearch (opts) {
       const obj = {
         index: idx,
         type: esVersion >= 7 ? undefined : type,
-        body: useEcs ? toEcs(body) : body
+        body: body
       }
       client.index(obj, function (err, data) {
         if (!err) {
@@ -127,13 +119,6 @@ function pinoElasticSearch (opts) {
       return buildIndexName(time)
     }
     return index.replace('%{DATE}', time.substring(0, 10))
-  }
-
-  var emitted = false
-  function ecsWarning () {
-    if (emitted) return
-    emitted = true
-    process.emitWarning('The "ecs" option has been deprecated, use https://github.com/elastic/ecs-logging-js/tree/master/loggers/pino instead')
   }
 
   pump(splitter, writable)
