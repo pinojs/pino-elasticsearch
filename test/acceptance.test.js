@@ -7,6 +7,7 @@ const tap = require('tap')
 const test = require('tap').test
 const { Client } = require('@elastic/elasticsearch')
 const client = new Client({ node: 'http://localhost:9200' })
+const EcsFormat = require('@elastic/ecs-pino-format')
 const index = 'pinotest'
 const type = 'log'
 const consistency = 'one'
@@ -204,10 +205,11 @@ test('replaces date in index during bulk insert', { timeout }, (t) => {
 })
 
 test('Use ecs format', { timeout }, (t) => {
-  t.plan(15)
+  t.plan(10)
 
-  const instance = elastic({ index, type, consistency, node, 'es-version': esVersion, ecs: true })
-  const log = pino(instance)
+  const instance = elastic({ index, type, consistency, node, 'es-version': esVersion })
+  const ecsFormat = EcsFormat()
+  const log = pino({ ...ecsFormat }, instance)
 
   log.info('hello world')
   log.info('hello world')
@@ -216,9 +218,8 @@ test('Use ecs format', { timeout }, (t) => {
   log.info('hello world')
 
   instance.on('insert', (obj, body) => {
-    t.deepEqual(body.ecs, { version: '1.0.0' })
     t.type(body['@timestamp'], 'string')
-    t.assertNot(body.time)
+    t.is(body.message, 'hello world')
   })
 })
 

@@ -22,8 +22,9 @@
   "author": "Matteo Collina <hello@matteocollina.com>",
   "license": "MIT",
   "devDependencies": {
+    "@elastic/ecs-pino-format": "^0.1.0",
     "is-elasticsearch-running": "^0.1.0",
-    "pino": "^5.16.0",
+    "pino": "^6.2.1",
     "pre-commit": "^1.2.2",
     "proxyquire": "^2.1.3",
     "standard": "^14.0.0",
@@ -33,7 +34,6 @@
     "@elastic/elasticsearch": "^7.6.0",
     "fast-json-parse": "^1.0.3",
     "minimist": "^1.2.0",
-    "pino-to-ecs": "^0.2.0",
     "pump": "^3.0.0",
     "readable-stream": "^3.6.0",
     "split2": "^3.1.1"
@@ -48,5 +48,8 @@
   "homepage": "https://github.com/pinojs/pino-elasticsearch#readme",
   "directories": {
     "test": "test"
+  },
+  "engines": {
+    "node": ">=10"
   }
 }
