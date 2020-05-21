@@ -4,6 +4,7 @@ const pino = require('pino')
 const proxyquire = require('proxyquire')
 const test = require('tap').test
 const fix = require('./fixtures')
+const EcsFormat = require('@elastic/ecs-pino-format')
 
 const matchISOString = /\d{4}-[01]\d-[0-3]\dT[0-2]\d:[0-5]\d:[0-5]\d\.\d+([+-][0-2]\d:[0-5]\d|Z)/
 const options = {
@@ -100,15 +101,14 @@ test('Uses the type parameter only with ES < 7 / 2', (t) => {
 })
 
 test('ecs format', (t) => {
-  t.plan(6)
+  t.plan(5)
   const Client = function (config) {
     t.equal(config.node, options.node)
   }
   Client.prototype.index = (obj, cb) => {
     t.ok(obj, true)
-    t.deepEqual(obj.body.ecs, { version: '1.0.0' })
     t.type(obj.body['@timestamp'], 'string')
-    t.assertNot(obj.body.time)
+    t.is(obj.body.message, prettyLog)
     t.match(obj.body['@timestamp'], matchISOString)
     cb(null, {})
   }
@@ -116,7 +116,8 @@ test('ecs format', (t) => {
     '@elastic/elasticsearch': { Client }
   })
   const instance = elastic(Object.assign(options, { ecs: true }))
-  const log = pino(instance)
+  const ecsFormat = EcsFormat()
+  const log = pino({ ...ecsFormat }, instance)
   const prettyLog = `some logs goes here.
   another log...`
   log.info(['info'], prettyLog)
