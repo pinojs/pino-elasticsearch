@@ -56,6 +56,8 @@ function pinoElasticSearch (opts) {
   const buildIndexName = typeof index === 'function' ? index : null
   const type = opts.type || 'log'
 
+  if (useEcs) ecsWarning()
+
   const writable = new Writable({
     objectMode: true,
     highWaterMark: opts['bulk-size'] || 500,
@@ -120,16 +122,22 @@ function pinoElasticSearch (opts) {
     }
   })
 
-  pump(splitter, writable)
-
-  return splitter
-
   function getIndexName (time) {
     if (buildIndexName) {
       return buildIndexName(time)
     }
     return index.replace('%{DATE}', time.substring(0, 10))
   }
+
+  var emitted = false
+  function ecsWarning () {
+    if (emitted) return
+    emitted = true
+    process.emitWarning('The "ecs" option has been deprecated, use https://github.com/elastic/ecs-logging-js/tree/master/loggers/pino instead')
+  }
+
+  pump(splitter, writable)
+  return splitter
 }
 
 module.exports = pinoElasticSearch
