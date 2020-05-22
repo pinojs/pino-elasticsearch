@@ -12,8 +12,6 @@ const index = 'pinotest'
 const type = 'log'
 const consistency = 'one'
 const node = 'http://localhost:9200'
-// new data in Elasticsearch is only visible after the refreshInterval
-const refreshInterval = 1100 // assume ES default settings 1 second
 const timeout = 5000
 
 tap.tearDown(() => {
@@ -37,25 +35,31 @@ tap.beforeEach(async () => {
 })
 
 test('store a log line', { timeout }, (t) => {
-  t.plan(3)
+  t.plan(2)
 
   const instance = elastic({ index, type, consistency, node, 'es-version': esVersion })
   const log = pino(instance)
 
   log.info('hello world')
 
-  instance.on('insert', (obj, body) => {
-    t.ok(obj, 'data uploaded')
+  instance.on('insert', (stats) => {
+    t.strictEqual(stats.total, 1)
 
-    client.get({
-      index,
-      type: esVersion >= 7 ? undefined : type,
-      id: obj._id
-    }, (err, response) => {
-      t.error(err)
-      t.deepEqual(response.body._source, body, 'obj matches')
-    })
+    client.helpers
+      .search({
+        index,
+        type: esVersion >= 7 ? undefined : type,
+        body: {
+          query: { match_all: {} }
+        }
+      })
+      .then(documents => {
+        t.strictEqual(documents[0].msg, 'hello world')
+      })
+      .catch(err => t.fail(err))
   })
+
+  instance.end()
 })
 
 test('Ignores a boolean line even though it is JSON-parseable', { timeout }, (t) => {
@@ -97,7 +101,7 @@ test('Can process number being parsed as json', { timeout }, (t) => {
 })
 
 test('store an deeply nested log line', { timeout }, (t) => {
-  t.plan(4)
+  t.plan(2)
 
   const instance = elastic({ index, type, consistency, node, 'es-version': esVersion })
   const log = pino(instance)
@@ -110,24 +114,28 @@ test('store an deeply nested log line', { timeout }, (t) => {
     }
   })
 
-  instance.on('insert', (obj, body) => {
-    t.ok(obj, 'data uploaded')
-    setTimeout(function () {
-      client.get({
+  instance.on('insert', (stats) => {
+    t.strictEqual(stats.total, 1)
+
+    client.helpers
+      .search({
         index,
         type: esVersion >= 7 ? undefined : type,
-        id: obj._id
-      }, (err, response) => {
-        t.error(err)
-        t.deepEqual(response.body._source, body, 'obj matches')
-        t.deepEqual(response.body._source.deeply.nested.hello, 'world', 'obj gets linearized')
+        body: {
+          query: { match_all: {} }
+        }
       })
-    }, refreshInterval)
+      .then(documents => {
+        t.strictEqual(documents[0].deeply.nested.hello, 'world', 'obj gets linearized')
+      })
+      .catch(err => t.fail(err))
   })
+
+  instance.end()
 })
 
 test('store lines in bulk', { timeout }, (t) => {
-  t.plan(15)
+  t.plan(6)
 
   const instance = elastic({ index, type, consistency, node, 'es-version': esVersion })
   const log = pino(instance)
@@ -138,19 +146,26 @@ test('store lines in bulk', { timeout }, (t) => {
   log.info('hello world')
   log.info('hello world')
 
-  instance.on('insert', (obj, body) => {
-    t.ok(obj, 'data uploaded')
-    setTimeout(function () {
-      client.get({
+  instance.on('insert', (stats) => {
+    t.strictEqual(stats.total, 5)
+
+    client.helpers
+      .search({
         index,
         type: esVersion >= 7 ? undefined : type,
-        id: obj._id
-      }, (err, response) => {
-        t.error(err)
-        t.deepEqual(response.body._source, body, 'obj matches')
+        body: {
+          query: { match_all: {} }
+        }
       })
-    }, refreshInterval)
+      .then(documents => {
+        for (const doc of documents) {
+          t.strictEqual(doc.msg, 'hello world')
+        }
+      })
+      .catch(err => t.fail(err))
   })
+
+  instance.end()
 })
 
 test('replaces date in index', { timeout }, (t) => {
@@ -160,71 +175,103 @@ test('replaces date in index', { timeout }, (t) => {
   const instance = elastic({ index, type, consistency, node, 'es-version': esVersion })
   const log = pino(instance)
 
-  log.info('hello world')
+  client.indices.delete({
+    index: index.replace('%{DATE}', new Date().toISOString().substring(0, 10))
+  }, { ignore: [404] }, (err) => {
+    t.error(err)
+    log.info('hello world')
 
-  instance.on('insert', (obj, body) => {
-    t.ok('data uploaded')
+    instance.on('insert', (stats) => {
+      t.strictEqual(stats.total, 1)
 
-    client.get({
-      index: index.replace('%{DATE}', new Date().toISOString().substring(0, 10)),
-      type: esVersion >= 7 ? undefined : type,
-      id: obj._id
-    }, (err, response) => {
-      t.error(err)
-      t.deepEqual(response.body._source, body, 'obj matches')
+      client.helpers
+        .search({
+          index: index.replace('%{DATE}', new Date().toISOString().substring(0, 10)),
+          type: esVersion >= 7 ? undefined : type,
+          body: {
+            query: { match_all: {} }
+          }
+        })
+        .then(documents => {
+          t.strictEqual(documents[0].msg, 'hello world')
+        })
+        .catch(err => t.fail(err))
     })
+
+    instance.end()
   })
 })
 
 test('replaces date in index during bulk insert', { timeout }, (t) => {
-  t.plan(15)
+  t.plan(7)
 
   const index = 'pinotest-%{DATE}'
   const instance = elastic({ index, type, consistency, node, 'es-version': esVersion })
   const log = pino(instance)
+  client.indices.delete({
+    index: index.replace('%{DATE}', new Date().toISOString().substring(0, 10))
+  }, { ignore: [404] }, (err) => {
+    t.error(err)
+    log.info('hello world')
+    log.info('hello world')
+    log.info('hello world')
+    log.info('hello world')
+    log.info('hello world')
 
-  log.info('hello world')
-  log.info('hello world')
-  log.info('hello world')
-  log.info('hello world')
-  log.info('hello world')
+    instance.on('insert', (stats) => {
+      t.strictEqual(stats.total, 5)
 
-  instance.on('insert', (obj, body) => {
-    t.ok(obj, 'data uploaded')
-    setTimeout(function () {
-      client.get({
-        index: index.replace('%{DATE}', new Date().toISOString().substring(0, 10)),
-        type: esVersion >= 7 ? undefined : type,
-        id: obj._id
-      }, (err, response) => {
-        t.error(err)
-        t.deepEqual(response.body._source, body, 'obj matches')
-      })
-    }, refreshInterval)
+      client.helpers
+        .search({
+          index: index.replace('%{DATE}', new Date().toISOString().substring(0, 10)),
+          type: esVersion >= 7 ? undefined : type,
+          body: {
+            query: { match_all: {} }
+          }
+        })
+        .then(documents => {
+          for (const doc of documents) {
+            t.strictEqual(doc.msg, 'hello world')
+          }
+        })
+        .catch(err => t.fail(err))
+    })
+
+    instance.end()
   })
 })
 
 test('Use ecs format', { timeout }, (t) => {
-  t.plan(10)
+  t.plan(2)
 
   const instance = elastic({ index, type, consistency, node, 'es-version': esVersion })
   const ecsFormat = EcsFormat()
   const log = pino({ ...ecsFormat }, instance)
 
   log.info('hello world')
-  log.info('hello world')
-  log.info('hello world')
-  log.info('hello world')
-  log.info('hello world')
 
-  instance.on('insert', (obj, body) => {
-    t.type(body['@timestamp'], 'string')
-    t.is(body.message, 'hello world')
+  instance.on('insert', (stats) => {
+    t.strictEqual(stats.total, 1)
+
+    client.helpers
+      .search({
+        index,
+        type: esVersion >= 7 ? undefined : type,
+        body: {
+          query: { match_all: {} }
+        }
+      })
+      .then(documents => {
+        t.type(documents[0]['@timestamp'], 'string')
+      })
+      .catch(err => t.fail(err))
   })
+
+  instance.end()
 })
 
 test('dynamic index name', { timeout }, (t) => {
-  t.plan(4)
+  t.plan(2)
 
   let indexNameGenerated
   const index = function (time) {
@@ -238,22 +285,28 @@ test('dynamic index name', { timeout }, (t) => {
 
   log.info('hello world')
 
-  instance.on('insert', (obj, body) => {
-    t.ok('data uploaded')
+  instance.on('insert', (stats) => {
+    t.strictEqual(stats.total, 1)
 
-    client.get({
-      index: indexNameGenerated,
-      type: esVersion >= 7 ? undefined : type,
-      id: obj._id
-    }, (err, response) => {
-      t.error(err)
-      t.deepEqual(response.body._source, body, 'obj matches')
-    })
+    client.helpers
+      .search({
+        index: indexNameGenerated,
+        type: esVersion >= 7 ? undefined : type,
+        body: {
+          query: { match_all: {} }
+        }
+      })
+      .then(documents => {
+        t.type(documents[0]['@timestamp'], 'string')
+      })
+      .catch(err => t.fail(err))
   })
+
+  instance.end()
 })
 
 test('dynamic index name during bulk insert', { timeout }, (t) => {
-  t.plan(20)
+  t.plan(12)
 
   let indexNameGenerated
   const index = function (time) {
@@ -273,17 +326,24 @@ test('dynamic index name during bulk insert', { timeout }, (t) => {
   log.info('hello world')
   log.info('hello world')
 
-  instance.on('insert', (obj, body) => {
-    t.ok(obj, 'data uploaded')
-    setTimeout(function () {
-      client.get({
+  instance.on('insert', (stats) => {
+    t.strictEqual(stats.total, 5)
+
+    client.helpers
+      .search({
         index: indexNameGenerated,
         type: esVersion >= 7 ? undefined : type,
-        id: obj._id
-      }, (err, response) => {
-        t.error(err)
-        t.deepEqual(response.body._source, body, 'obj matches')
+        body: {
+          query: { match_all: {} }
+        }
       })
-    }, refreshInterval)
+      .then(documents => {
+        for (const doc of documents) {
+          t.strictEqual(doc.msg, 'hello world')
+        }
+      })
+      .catch(err => t.fail(err))
   })
+
+  instance.end()
 })

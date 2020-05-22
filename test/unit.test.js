@@ -25,11 +25,14 @@ test('make sure log is a valid json', (t) => {
   const Client = function (config) {
     t.equal(config.node, options.node)
   }
-  Client.prototype.index = (obj, cb) => {
-    t.ok(obj, true)
-    t.type(obj.body.time, 'string')
-    t.match(obj.body.time, matchISOString)
-    cb(null, {})
+  Client.prototype.helpers = {
+    async bulk (opts) {
+      for await (const chunk of opts.datasource) {
+        t.ok(chunk, true)
+        t.type(chunk.time, 'string')
+        t.match(chunk.time, matchISOString)
+      }
+    }
   }
   const elastic = proxyquire('../', {
     '@elastic/elasticsearch': { Client }
@@ -48,10 +51,14 @@ test('date can be a number', (t) => {
   const threeDaysInMillis = 3 * 24 * 60 * 60 * 1000
   const time = new Date(Date.now() - threeDaysInMillis)
 
-  Client.prototype.index = (obj, cb) => {
-    t.equal(obj.body.time, time.toISOString())
-    cb(null, {})
+  Client.prototype.helpers = {
+    async bulk (opts) {
+      for await (const chunk of opts.datasource) {
+        t.equal(chunk.time, time.toISOString())
+      }
+    }
   }
+
   const elastic = proxyquire('../', {
     '@elastic/elasticsearch': { Client }
   })
@@ -67,10 +74,16 @@ test('Uses the type parameter only with ES < 7 / 1', (t) => {
   const Client = function (config) {
     t.equal(config.node, options.node)
   }
-  Client.prototype.index = (obj, cb) => {
-    t.strictEqual(obj.type, 'log')
-    cb(null, {})
+
+  Client.prototype.helpers = {
+    async bulk (opts) {
+      for await (const chunk of opts.datasource) {
+        const action = opts.onDocument(chunk)
+        t.strictEqual(action.index._type, 'log')
+      }
+    }
   }
+
   const elastic = proxyquire('../', {
     '@elastic/elasticsearch': { Client }
   })
@@ -86,10 +99,15 @@ test('Uses the type parameter only with ES < 7 / 2', (t) => {
   const Client = function (config) {
     t.equal(config.node, options.node)
   }
-  Client.prototype.index = (obj, cb) => {
-    t.strictEqual(obj.type, undefined)
-    cb(null, {})
+  Client.prototype.helpers = {
+    async bulk (opts) {
+      for await (const chunk of opts.datasource) {
+        const action = opts.onDocument(chunk)
+        t.strictEqual(action.index._type, undefined)
+      }
+    }
   }
+
   const elastic = proxyquire('../', {
     '@elastic/elasticsearch': { Client }
   })
@@ -105,13 +123,17 @@ test('ecs format', (t) => {
   const Client = function (config) {
     t.equal(config.node, options.node)
   }
-  Client.prototype.index = (obj, cb) => {
-    t.ok(obj, true)
-    t.type(obj.body['@timestamp'], 'string')
-    t.is(obj.body.message, prettyLog)
-    t.match(obj.body['@timestamp'], matchISOString)
-    cb(null, {})
+  Client.prototype.helpers = {
+    async bulk (opts) {
+      for await (const chunk of opts.datasource) {
+        t.ok(chunk, true)
+        t.type(chunk['@timestamp'], 'string')
+        t.is(chunk.message, prettyLog)
+        t.match(chunk['@timestamp'], matchISOString)
+      }
+    }
   }
+
   const elastic = proxyquire('../', {
     '@elastic/elasticsearch': { Client }
   })
