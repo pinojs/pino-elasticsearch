@@ -56,6 +56,7 @@ function pinoElasticSearch (opts) {
   const b = client.helpers.bulk({
     datasource: splitter,
     flushBytes: opts['flush-bytes'],
+    refreshOnCompletion: getIndexName(),
     onDocument (doc) {
       return {
         index: {
@@ -66,7 +67,7 @@ function pinoElasticSearch (opts) {
     },
     onDrop (doc) {
       const error = new Error('Dropped document')
-      error.onDocument = doc
+      error.document = doc
       splitter.emit('insertError', error)
     }
   })
@@ -76,7 +77,7 @@ function pinoElasticSearch (opts) {
     (err) => splitter.emit('error', err)
   )
 
-  function getIndexName (time = Date.now()) {
+  function getIndexName (time = new Date().toISOString()) {
     if (buildIndexName) {
       return buildIndexName(time)
     }
