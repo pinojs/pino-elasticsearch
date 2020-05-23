@@ -7,6 +7,11 @@ const { Client } = require('@elastic/elasticsearch')
 const Parse = require('fast-json-parse')
 
 function pinoElasticSearch (opts) {
+  if (opts['bulk-size']) {
+    process.emitWarning('The "bulk-size" option has been deprecated, "flush-bytes" instead')
+    delete opts['bulk-size']
+  }
+
   const splitter = split(function (line) {
     var parsed = new Parse(line)
     if (parsed.err) {
@@ -52,16 +57,16 @@ function pinoElasticSearch (opts) {
   const esVersion = Number(opts['es-version']) || 7
   const index = opts.index || 'pino'
   const buildIndexName = typeof index === 'function' ? index : null
-  const type = opts.type || 'log'
+  const type = esVersion >= 7 ? undefined : (opts.type || 'log')
   const b = client.helpers.bulk({
     datasource: splitter,
-    flushBytes: opts['flush-bytes'],
+    flushBytes: opts['flush-bytes'] || 1000,
     refreshOnCompletion: getIndexName(),
     onDocument (doc) {
       return {
         index: {
           _index: getIndexName(doc.time || doc['@timestamp']),
-          _type: esVersion >= 7 ? undefined : type
+          _type: type
         }
       }
     },
