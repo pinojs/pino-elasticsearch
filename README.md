@@ -25,7 +25,8 @@ npm install pino-elasticsearch -g
   -i  | --index             the name of the index to use; default: pino
                             will replace %{DATE} with the YYYY-MM-DD date
   -t  | --type              the name of the type to use; default: log
-  -b  | --size              the number of documents for each bulk insert
+  -f  | --flush-bytes       the number of bytes for each bulk insert; default: 1000
+  -b  | --bulk-size         the number of documents for each bulk insert [DEPERCATED]
   -l  | --trace-level       trace level for the elasticsearch client, default 'error' (info, debug, trace).
       | --es-version        specify the major version number of Elasticsearch (eg: 5, 6, 7)
                             (this is needed only if you are using Elasticsearch <= 7)
@@ -43,7 +44,7 @@ const streamToElastic = pinoElastic({
   consistency: 'one',
   node: 'http://localhost:9200',
   'es-version': 7,
-  'bulk-size': 200
+  'flush-bytes': 1000
 })
 
 const logger = pino({ level: 'info' }, streamToElastic)
@@ -66,7 +67,7 @@ const streamToElastic = pinoElastic({
   consistency: 'one',
   node: 'http://localhost:9200',
   'es-version': 7,
-  'bulk-size': 200
+  'flush-bytes': 1000
 })
 
 const logger = pino({ level: 'info',  ...ecsFormat  }, streamToElastic)

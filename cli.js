@@ -28,6 +28,7 @@ start(minimist(process.argv.slice(2), {
     node: 'n',
     index: 'i',
     'bulk-size': 'b',
+    'flush-bytes': 'f',
     'trace-level': 'l'
   },
   default: {
