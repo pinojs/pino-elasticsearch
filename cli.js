@@ -18,15 +18,15 @@ function start (opts) {
     return
   }
 
-  if (opts['api-key']) {
-    opts.auth = { apiKey: opts['api-key'] }
-  }
-
   if (opts.username && opts.password) {
     opts.auth = {
       username: opts.username,
       password: opts.password
     }
+  }
+
+  if (opts['api-key']) {
+    opts.auth = { apiKey: opts['api-key'] }
   }
 
   if (opts.cloud) {

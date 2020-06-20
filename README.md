@@ -126,7 +126,7 @@ Elastic cloud option `cloud` is also supported:
 cat log | pino-elasticsearch --cloud=name:bG9jYWxob3N0JGFiY2QkZWZnaA== --api-key=base64EncodedKey
 ```
 
-Note: When using the cli, if you pass username/password AND an apiKey the configuration will default to using the username/password combination.
+Note: When using the cli, if you pass username/password AND an apiKey the apiKey will take precedence over the username/password combination.
 
 You can also include the `auth` field in your configuration like so:
 ```js
