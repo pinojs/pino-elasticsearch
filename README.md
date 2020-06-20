@@ -107,12 +107,15 @@ If you need to use basic authentication to connect with the Elasticsearch cluste
 cat log | pino-elasticsearch --node https://user:pwd@localhost:9200
 ```
 
-Alternatively you can supply a combination of `username` and `password`:
+Alternatively you can supply a combination of `username` and `password` OR `api-key`:
 ```
 cat log | pino-elasticsearch --node https://localhost:9200 -u user -p pwd
 ```
+```
+cat log | pino-elasticsearch --node https://localhost:9200 --api-key=base64EncodedKey
+```
 
-Elastic cloud options `api-key` and `cloud` are also supported:
+Elastic cloud option `cloud` is also supported:
 ```sh
 cat log | pino-elasticsearch --cloud=name:bG9jYWxob3N0JGFiY2QkZWZnaA== --api-key=base64EncodedKey
 ```
