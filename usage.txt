@@ -22,5 +22,5 @@
                             (can only be used in tandem with the 'password' flag)
   -p  | --password          Password to specify with authentication method
                             (can only be used in tandem with the 'username' flag)
-  -k  | --api-key           Api key for usage with elastic cloud authentication
+  -k  | --api-key           Api key for authentication instead of username/password combination
   -c  | --cloud             Id of the elastic cloud node to connect to
