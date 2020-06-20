@@ -30,6 +30,12 @@ npm install pino-elasticsearch -g
   -l  | --trace-level       trace level for the elasticsearch client, default 'error' (info, debug, trace).
       | --es-version        specify the major version number of Elasticsearch (eg: 5, 6, 7)
                             (this is needed only if you are using Elasticsearch <= 7)
+  -u  | --username          Username to specify with authentication method
+                            (can only be used in tandem with the 'password' flag)
+  -p  | --password          Password to specify with authentication method
+                            (can only be used in tandem with the 'username' flag)
+  -k  | --api-key           Api key for authentication instead of username/password combination
+  -c  | --cloud             Id of the elastic cloud node to connect to
 
 ```
 
