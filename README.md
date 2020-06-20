@@ -136,7 +136,7 @@ const streamToElastic = pinoElastic({
 })
 ```
 
-And if you're using elastic cloud, you can pass an `apiKey` instead:
+Alternatively you can pass an `apiKey` instead:
 ```js
 const pinoElastic = require('pino-elasticsearch')
 
