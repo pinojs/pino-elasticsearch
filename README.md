@@ -158,7 +158,7 @@ const streamToElastic = pinoElastic({
 })
 ```
 
-For a full list of authentication options when using elastic cloud, check out the [authentication configuration docs](https://www.elastic.co/guide/en/elasticsearch/client/javascript-api/current/auth-reference.html)
+For a full list of authentication options when using elastic, check out the [authentication configuration docs](https://www.elastic.co/guide/en/elasticsearch/client/javascript-api/current/auth-reference.html)
 
 ## Setup and Testing
 
