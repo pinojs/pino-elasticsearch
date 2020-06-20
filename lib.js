@@ -52,7 +52,7 @@ function pinoElasticSearch (opts) {
     return value
   })
 
-  const client = new Client({ node: opts.node })
+  const client = new Client({ node: opts.node, auth: opts.auth, cloud: opts.cloud, ssl: opts.ssl })
 
   const esVersion = Number(opts['es-version']) || 7
   const index = opts.index || 'pino'
