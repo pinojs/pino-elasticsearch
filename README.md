@@ -107,7 +107,19 @@ If you need to use basic authentication to connect with the Elasticsearch cluste
 cat log | pino-elasticsearch --node https://user:pwd@localhost:9200
 ```
 
-You can include the `auth` field in your configuration like so:
+Alternatively you can supply a combination of `username` and `password`:
+```
+cat log | pino-elasticsearch --node https://localhost:9200 -u user -p pwd
+```
+
+Elastic cloud options `api-key` and `cloud` are also supported:
+```sh
+cat log | pino-elasticsearch --cloud=name:bG9jYWxob3N0JGFiY2QkZWZnaA== --api-key=base64EncodedKey
+```
+
+Note: When using the cli, if you pass username/password AND an apiKey the configuration will default to using the username/password combination.
+
+You can also include the `auth` field in your configuration like so:
 ```js
 const pinoElastic = require('pino-elasticsearch')
 
@@ -132,6 +144,9 @@ const streamToElastic = pinoElastic({
   index: 'an-index',
   consistency: 'one',
   node: 'http://localhost:9200',
+  cloud: {
+    id: 'name:bG9jYWxob3N0JGFiY2QkZWZnaA=='
+  },
   auth: {
     apiKey: 'apikey123'
   },
@@ -139,8 +154,6 @@ const streamToElastic = pinoElastic({
   'flush-bytes': 1000
 })
 ```
-
-Note: the `ssl` and and `cloud` fields are available as part of the options object as well.
 
 For a full list of authentication options when using elastic cloud, check out the [authentication configuration docs](https://www.elastic.co/guide/en/elasticsearch/client/javascript-api/current/auth-reference.html)
 
