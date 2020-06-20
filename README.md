@@ -142,7 +142,7 @@ const streamToElastic = pinoElastic({
 
 Note: the `ssl` and and `cloud` fields are available as part of the options object as well.
 
-For a full list of authentication options when using elastic cloud, check out the configuration docs [here](https://www.elastic.co/guide/en/elasticsearch/client/javascript-api/current/auth-reference.html)
+For a full list of authentication options when using elastic cloud, check out the [authentication configuration docs](https://www.elastic.co/guide/en/elasticsearch/client/javascript-api/current/auth-reference.html)
 
 ## Setup and Testing
 
