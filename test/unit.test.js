@@ -144,3 +144,58 @@ test('ecs format', (t) => {
   another log...`
   log.info(['info'], prettyLog)
 })
+
+test('auth and cloud parameters are properly passed to client', (t) => {
+  const opts = {
+    index: 'pinotest',
+    type: 'log',
+    consistency: 'one',
+    node: 'http://localhost:9200',
+    auth: {
+      username: 'user',
+      password: 'pass'
+    },
+    cloud: {
+      id: 'name:aHR0cHM6Ly9leGFtcGxlLmNvbQ=='
+    }
+  }
+
+  t.plan(3)
+  const Client = function (config) {
+    t.equal(config.node, opts.node)
+    t.equal(config.auth, opts.auth)
+    t.equal(config.cloud, opts.cloud)
+  }
+  Client.prototype.helpers = {
+    async bulk (opts) {}
+  }
+  const elastic = proxyquire('../', {
+    '@elastic/elasticsearch': { Client }
+  })
+  elastic(opts)
+})
+
+test('apikey is passed through auth param properly to client', (t) => {
+  const opts = {
+    index: 'pinotest',
+    type: 'log',
+    consistency: 'one',
+    node: 'http://localhost:9200',
+    auth: {
+      apiKey: 'aHR0cHM6Ly9leGFtcGxlLmNvbQ'
+    }
+  }
+
+  t.plan(2)
+  const Client = function (config) {
+    t.equal(config.node, opts.node)
+    t.equal(config.auth, opts.auth)
+  }
+  Client.prototype.helpers = {
+    async bulk (opts) {}
+  }
+  const elastic = proxyquire('../', {
+    '@elastic/elasticsearch': { Client }
+  })
+  elastic(opts)
+})
