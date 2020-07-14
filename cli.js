@@ -18,6 +18,21 @@ function start (opts) {
     return
   }
 
+  if (opts.username && opts.password) {
+    opts.auth = {
+      username: opts.username,
+      password: opts.password
+    }
+  }
+
+  if (opts['api-key']) {
+    opts.auth = { apiKey: opts['api-key'] }
+  }
+
+  if (opts.cloud) {
+    opts.cloud = { id: opts.cloud }
+  }
+
   pump(process.stdin, pinoElasticSearch(opts))
 }
 
@@ -29,7 +44,11 @@ start(minimist(process.argv.slice(2), {
     index: 'i',
     'bulk-size': 'b',
     'flush-bytes': 'f',
-    'trace-level': 'l'
+    'trace-level': 'l',
+    username: 'u',
+    password: 'p',
+    'api-key': 'k',
+    cloud: 'c'
   },
   default: {
     node: 'http://localhost:9200'

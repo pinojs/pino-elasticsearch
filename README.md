@@ -30,6 +30,12 @@ npm install pino-elasticsearch -g
   -l  | --trace-level       trace level for the elasticsearch client, default 'error' (info, debug, trace).
       | --es-version        specify the major version number of Elasticsearch (eg: 5, 6, 7)
                             (this is needed only if you are using Elasticsearch <= 7)
+  -u  | --username          Username to specify with authentication method
+                            (can only be used in tandem with the 'password' flag)
+  -p  | --password          Password to specify with authentication method
+                            (can only be used in tandem with the 'username' flag)
+  -k  | --api-key           Api key for authentication instead of username/password combination
+  -c  | --cloud             Id of the elastic cloud node to connect to
 
 ```
 
@@ -106,6 +112,60 @@ If you need to use basic authentication to connect with the Elasticsearch cluste
 ```
 cat log | pino-elasticsearch --node https://user:pwd@localhost:9200
 ```
+
+Alternatively you can supply a combination of `username` and `password` OR `api-key`:
+```
+cat log | pino-elasticsearch --node https://localhost:9200 -u user -p pwd
+```
+```
+cat log | pino-elasticsearch --node https://localhost:9200 --api-key=base64EncodedKey
+```
+
+Elastic cloud option `cloud` is also supported:
+```sh
+cat log | pino-elasticsearch --cloud=name:bG9jYWxob3N0JGFiY2QkZWZnaA== --api-key=base64EncodedKey
+```
+
+Note: When using the cli, if you pass username/password AND an apiKey the apiKey will take precedence over the username/password combination.
+
+You can also include the `auth` field in your configuration like so:
+```js
+const pinoElastic = require('pino-elasticsearch')
+
+const streamToElastic = pinoElastic({
+  index: 'an-index',
+  consistency: 'one',
+  node: 'http://localhost:9200',
+  auth: {
+    username: 'user',
+    password: 'pwd'
+  },
+  'es-version': 7,
+  'flush-bytes': 1000
+})
+```
+
+Alternatively you can pass an `apiKey` instead:
+```js
+const pinoElastic = require('pino-elasticsearch')
+
+const streamToElastic = pinoElastic({
+  index: 'an-index',
+  consistency: 'one',
+  node: 'http://localhost:9200',
+  cloud: {
+    id: 'name:bG9jYWxob3N0JGFiY2QkZWZnaA=='
+  },
+  auth: {
+    apiKey: 'apikey123'
+  },
+  'es-version': 7,
+  'flush-bytes': 1000
+})
+```
+
+For a full list of authentication options when using elastic, check out the [authentication configuration docs](https://www.elastic.co/guide/en/elasticsearch/client/javascript-api/current/auth-reference.html)
+
 ## Setup and Testing
 
 Setting up pino-elasticsearch is easy, and you can use the bundled
