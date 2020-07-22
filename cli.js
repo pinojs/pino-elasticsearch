@@ -44,6 +44,7 @@ start(minimist(process.argv.slice(2), {
     index: 'i',
     'bulk-size': 'b',
     'flush-bytes': 'f',
+    'flush-interval': 'fi',
     'trace-level': 'l',
     username: 'u',
     password: 'p',

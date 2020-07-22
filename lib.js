@@ -61,6 +61,7 @@ function pinoElasticSearch (opts) {
   const b = client.helpers.bulk({
     datasource: splitter,
     flushBytes: opts['flush-bytes'] || 1000,
+    flushInterval: opts['flush-interval'] || 30000,
     refreshOnCompletion: getIndexName(),
     onDocument (doc) {
       return {
