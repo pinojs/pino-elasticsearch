@@ -26,7 +26,7 @@ npm install pino-elasticsearch -g
                             will replace %{DATE} with the YYYY-MM-DD date
   -t  | --type              the name of the type to use; default: log
   -f  | --flush-bytes       the number of bytes for each bulk insert; default: 1000
-  -b  | --bulk-size         the number of documents for each bulk insert [DEPERCATED]
+  -b  | --bulk-size         the number of documents for each bulk insert [DEPRECATED]
   -l  | --trace-level       trace level for the elasticsearch client, default 'error' (info, debug, trace).
       | --es-version        specify the major version number of Elasticsearch (eg: 5, 6, 7)
                             (this is needed only if you are using Elasticsearch <= 7)
