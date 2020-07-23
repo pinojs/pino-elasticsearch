@@ -199,3 +199,24 @@ test('apikey is passed through auth param properly to client', (t) => {
   })
   elastic(opts)
 })
+
+test('make sure `flush-interval` is passed to bulk request', (t) => {
+  t.plan(2)
+  const Client = function (config) {
+    t.equal(config.node, options.node)
+  }
+  Client.prototype.helpers = {
+    async bulk (opts) {
+      t.equal(opts.flushInterval, 12345)
+      t.end()
+    }
+  }
+  const elastic = proxyquire('../', {
+    '@elastic/elasticsearch': { Client }
+  })
+
+  options['flush-interval'] = 12345
+  const instance = elastic(options)
+  const log = pino(instance)
+  log.info(['info'], 'abc')
+})
