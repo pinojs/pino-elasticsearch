@@ -108,6 +108,34 @@ const streamToElastic = pinoElastic({
 
 The function **must** be sync, doesn't throw and return a string.
 
+#### Error handling
+```js
+const pino = require('pino')
+const ecsFormat = require('@elastic/ecs-pino-format')()
+const pinoElastic = require('pino-elasticsearch')
+
+const streamToElastic = pinoElastic({
+  index: 'an-index',
+  consistency: 'one',
+  node: 'http://localhost:9200',
+  'es-version': 7,
+  'flush-bytes': 1000
+})
+
+// Capture errors like unable to connect Elasticsearch instance.
+steamToElastic.on('error', (error) => {
+  console.error('Elasticsearch client error:', error);
+})
+// Capture errors returned from Elasticsearch, "it will be called for everytime a document can't be indexed".
+streamToElastic.on('insertError', (error) => {
+  console.error('Elasticsearch server error:', error);
+})
+
+const logger = pino({ level: 'info',  ...ecsFormat  }, streamToElastic)
+
+logger.info('hello world')
+```
+
 ### Authentication
 If you need to use basic authentication to connect with the Elasticsearch cluster, pass the credentials in the URL:
 ```

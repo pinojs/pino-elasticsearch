@@ -33,7 +33,16 @@ function start (opts) {
     opts.cloud = { id: opts.cloud }
   }
 
-  pump(process.stdin, pinoElasticSearch(opts))
+  const stream = pinoElasticSearch(opts)
+
+  stream.on('error', (error) => {
+    console.error('Elasticsearch client error:', error)
+  })
+  stream.on('insertError', (error) => {
+    console.error('Elasticsearch server error:', error)
+  })
+
+  pump(process.stdin, stream)
 }
 
 start(minimist(process.argv.slice(2), {
