@@ -4,7 +4,6 @@
 
 const split = require('split2')
 const { Client } = require('@elastic/elasticsearch')
-const Parse = require('fast-json-parse')
 
 function pinoElasticSearch (opts) {
   if (opts['bulk-size']) {
@@ -13,12 +12,15 @@ function pinoElasticSearch (opts) {
   }
 
   const splitter = split(function (line) {
-    var parsed = new Parse(line)
-    if (parsed.err) {
-      this.emit('unknown', line, parsed.err)
+    var value
+
+    try {
+      value = JSON.parse(line)
+    } catch (error) {
+      this.emit('unknown', line, error)
       return
     }
-    var value = parsed.value
+
     if (typeof value === 'boolean') {
       this.emit('unknown', line, 'Boolean value ignored')
       return
