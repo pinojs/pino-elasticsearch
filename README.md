@@ -37,6 +37,7 @@ npm install pino-elasticsearch -g
                             (can only be used in tandem with the 'username' flag)
   -k  | --api-key           Api key for authentication instead of username/password combination
   -c  | --cloud             Id of the elastic cloud node to connect to
+  --rejectUnauthorized      Reject any connection which is not authorized with the list of supplied CAs; default: true
 
 ```
 
