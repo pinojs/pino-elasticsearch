@@ -33,6 +33,10 @@ function start (opts) {
     opts.cloud = { id: opts.cloud }
   }
 
+  if (opts.rejectUnauthorized) {
+    opts.rejectUnauthorized = opts.rejectUnauthorized !== 'false'
+  }
+
   pump(process.stdin, pinoElasticSearch(opts))
 }
 
