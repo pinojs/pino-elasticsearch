@@ -36,11 +36,10 @@ function start (opts) {
   if (opts.rejectUnauthorized) {
     opts.rejectUnauthorized = opts.rejectUnauthorized !== 'false'
   }
-
   pump(process.stdin, pinoElasticSearch(opts))
 }
 
-start(minimist(process.argv.slice(2), {
+const flags = minimist(process.argv.slice(2), {
   alias: {
     version: 'v',
     help: 'h',
@@ -53,9 +52,29 @@ start(minimist(process.argv.slice(2), {
     username: 'u',
     password: 'p',
     'api-key': 'k',
-    cloud: 'c'
+    cloud: 'c',
+    'read-config': 'r'
   },
   default: {
     node: 'http://localhost:9200'
   }
-}))
+})
+
+const allowedProps = ['node', 'index', 'bulk-size', 'flush-btyes', 'flush-interval', 'trace-level', 'username', 'password', 'api-key', 'cloud', 'es-version', 'rejectUnauthorized']
+
+if (flags['read-config']) {
+  if (flags['read-config'].match(/.*\.json$/) !== null) {
+    const config = JSON.parse(fs.readFileSync(path.join(__dirname, flags['read-config']), 'utf-8'))
+    allowedProps.forEach(key => {
+      config[key] ? flags[key] = config[key] : null
+    })
+  }
+
+  if (flags['read-config'].match(/.*\.js$/) !== null) {
+    const config = require(path.join(__dirname, flags['read-config']))
+    allowedProps.forEach(key => {
+      config[key] ? flags[key] = config[key] : null
+    })
+  }
+}
+start(flags)
