@@ -64,14 +64,14 @@ const allowedProps = ['node', 'index', 'bulk-size', 'flush-btyes', 'flush-interv
 
 if (flags['read-config']) {
   if (flags['read-config'].match(/.*\.json$/) !== null) {
-    const config = JSON.parse(fs.readFileSync(path.join(__dirname, flags['read-config']), 'utf-8'))
+    const config = JSON.parse(fs.readFileSync(path.join(process.cwd(), flags['read-config']), 'utf-8'))
     allowedProps.forEach(key => {
       if (config[key]) { flags[key] = config[key] }
     })
   }
 
   if (flags['read-config'].match(/.*\.js$/) !== null) {
-    const config = require(path.join(__dirname, flags['read-config']))
+    const config = require(path.join(process.cwd(), flags['read-config']))
     allowedProps.forEach(key => {
       if (config[key]) { flags[key] = config[key] }
     })
