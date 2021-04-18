@@ -61,6 +61,106 @@ logger.info('hello world')
 // ...
 ```
 
+### Using multiple streams (output to Console and Elasticsearch)
+
+If you want to output to multiple streams (transports and console)), the simplest way is to use the `pino-multi-stream` library and register a stream per output.
+
+```js
+const pinoElastic = require('pino-elasticsearch');
+const pinoMultiStream = require('pino-multi-stream').multistream;
+
+const streamToElastic = pinoElastic({
+  index: 'an-index',
+  consistency: 'one',
+  node: 'http://localhost:9200',
+  'es-version': 7,
+  'flush-bytes': 1000
+});
+
+const pinoOptions = {};
+
+return pino(pinoOptions, pinoMultiStream([
+  { stream: process.stdout },
+  { stream: streamToElastic },
+]));
+```
+
+You can learn more about `pino-multi-stream` here: https://github.com/pinojs/pino-multi-stream.
+
+### Troubleshooting
+
+Assuming your Elasticsearch instance is running and accessible, there are a couple of common problems that will cause indices or events (log entries) to not be created in Elasticsearch when using this library.  Developers can get feedback on these problems by listening for events returned by the stream handler.
+
+The stream handler returned from the default factory function is an [`EventEmitter`](https://nodejs.org/api/events.html#events_class_eventemitter).  Developers can use this interface to debug issues encountered by the `pino-elasticsearch` library.
+
+```js
+const pinoElastic = require('pino-elasticsearch');
+
+const streamToElastic = pinoElastic({
+  index: 'an-index',
+  consistency: 'one',
+  node: 'http://localhost:9200',
+  'es-version': 7,
+  'flush-bytes': 1000
+})
+
+streamToElastic.on('<event>', (error) => console.log(event));
+```
+
+The following table lists the events emitted by the stream handler:
+
+| Event | Callback Signature | Description |
+| ----- | ------------------ | ----------- |
+| `unknown` | `(line: string, error: string) => void` | Event received by `pino-elasticsearch` is unparseable (via `JSON.parse`) |
+| `insertError` | `(error: Error & { document: Record<string, any> }) => void` | The bulk insert request to Elasticsearch failed (records dropped). |
+| `insert` | `(stats: Record<string, any>) => void` | Called when an insert was successfully performed |
+| `error` | `(error: Error) => void` | Called when the Elasticsearch client fails for some other reason |
+
+There are a few common problems developers will encounter when initially using this library.  The next section discusses these issues.
+
+**Pino output is not JSON**
+
+Any transform of the stream (like `pino-pretty`) that results in an non-JSON stream output will be ignored (the `unknown` event will be emitted).
+
+```js
+const pino = require('pino');
+const pinoElastic = require('pino-elasticsearch');
+
+const streamToElastic = pinoElastic({
+  index: 'an-index',
+  consistency: 'one',
+  node: 'http://localhost:9200',
+  'es-version': 7,
+  'flush-bytes': 1000
+})
+
+streamToElastic.on(
+  'unknown',
+  (line, error) =>
+    console.log('Expect to see a lot of these with Pino Pretty turned on.')
+);
+
+const logger = pino({
+  prettyPrint: true,
+}, streamToElastic)
+```
+
+**Events do not match index schema/mappings**
+
+Elasticsearch schema mappings are strict and if events do not match their format, the events will be dropped.  A typical example is if you use the default `pino` format with the `logs-` index in Elasticsearch.  The default installation of Elasticsearch includes a data pipeline mapped to the `logs-` index prefix.  This is intended to be used by the Beats and Logstash aggregators and requires `@timestamp` and `@message` fields.  The default `pino` setup uses `time` and `msg`.  Attempting to write events to the `logs-` index without mapping/transforming the `pino` schema will result in events being dropped.
+
+Developers can troubleshoot insert errors by watching for the `insertError` event.
+
+```js
+streamToElastic.on(
+  'insertError',
+  (error) => {
+    const documentThatFailed = error.document;
+    console.log(`An error occurred insert document:`, documentThatFailed);
+  }
+);
+```
+
 ### ECS support
 
 If you want to use [Elastic Common Schema](https://www.elastic.co/guide/en/ecs/current/index.html), you should install [`@elastic/ecs-pino-format`](https://github.com/elastic/ecs-logging-js/tree/master/loggers/pino), as the `ecs` option of this module has been removed.
