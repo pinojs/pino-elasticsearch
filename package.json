@@ -22,7 +22,7 @@
   "author": "Matteo Collina <hello@matteocollina.com>",
   "license": "MIT",
   "devDependencies": {
-    "@elastic/ecs-pino-format": "^0.1.0",
+    "@elastic/ecs-pino-format": "^1.1.1",
     "is-elasticsearch-running": "^0.1.0",
     "pino": "^6.2.1",
     "pre-commit": "^1.2.2",
