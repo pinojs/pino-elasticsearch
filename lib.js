@@ -3,7 +3,7 @@
 /* eslint no-prototype-builtins: 0 */
 
 const split = require('split2')
-const { Client } = require('@elastic/elasticsearch')
+const { Client, Connection, Transport } = require('@elastic/elasticsearch')
 
 function pinoElasticSearch (opts) {
   if (opts['bulk-size']) {
@@ -58,7 +58,9 @@ function pinoElasticSearch (opts) {
     node: opts.node,
     auth: opts.auth,
     cloud: opts.cloud,
-    ssl: { rejectUnauthorized: opts.rejectUnauthorized }
+    ssl: { rejectUnauthorized: opts.rejectUnauthorized },
+    Connection: opts.Connection || Connection,
+    Transport: opts.Transport || Transport
   })
 
   const esVersion = Number(opts['es-version']) || 7
