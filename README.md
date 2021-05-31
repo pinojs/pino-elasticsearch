@@ -87,6 +87,31 @@ return pino(pinoOptions, pinoMultiStream([
 
 You can learn more about `pino-multi-stream` here: https://github.com/pinojs/pino-multi-stream.
 
+### Custom Connection
+
+If you want to use a custom Connection class for the Elasticsearch client, you can pass it as an option when using as a module. See the Elasticsearch client docs for [Connection](https://www.elastic.co/guide/en/elasticsearch/client/javascript-api/master/advanced-config.html#_connection).
+
+```js
+const pino = require('pino')
+const pinoElastic = require('pino-elasticsearch')
+
+const Connection = <custom Connection>
+
+const streamToElastic = pinoElastic({
+  index: 'an-index',
+  consistency: 'one',
+  node: 'http://localhost:9200',
+  'es-version': 7,
+  'flush-bytes': 1000,
+  Connection
+})
+
+const logger = pino({ level: 'info' }, streamToElastic)
+
+logger.info('hello world')
+// ...
+```
+
 ### Troubleshooting
 
 Assuming your Elasticsearch instance is running and accessible, there are a couple of common problems that will cause indices or events (log entries) to not be created in Elasticsearch when using this library.  Developers can get feedback on these problems by listening for events returned by the stream handler.
