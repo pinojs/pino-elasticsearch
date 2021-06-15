@@ -12,7 +12,7 @@ function pinoElasticSearch (opts) {
   }
 
   const splitter = split(function (line) {
-    var value
+    let value
 
     try {
       value = JSON.parse(line)

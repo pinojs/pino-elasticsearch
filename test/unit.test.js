@@ -79,7 +79,7 @@ test('Uses the type parameter only with ES < 7 / 1', (t) => {
     async bulk (opts) {
       for await (const chunk of opts.datasource) {
         const action = opts.onDocument(chunk)
-        t.strictEqual(action.index._type, 'log')
+        t.equal(action.index._type, 'log')
       }
     }
   }
@@ -103,7 +103,7 @@ test('Uses the type parameter only with ES < 7 / 2', (t) => {
     async bulk (opts) {
       for await (const chunk of opts.datasource) {
         const action = opts.onDocument(chunk)
-        t.strictEqual(action.index._type, undefined)
+        t.equal(action.index._type, undefined)
       }
     }
   }
@@ -128,7 +128,7 @@ test('ecs format', (t) => {
       for await (const chunk of opts.datasource) {
         t.ok(chunk, true)
         t.type(chunk['@timestamp'], 'string')
-        t.is(chunk.message, prettyLog)
+        t.equal(chunk.message, prettyLog)
         t.match(chunk['@timestamp'], matchISOString)
       }
     }
