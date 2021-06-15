@@ -33,6 +33,15 @@ function start (opts) {
     opts.cloud = { id: opts.cloud }
   }
 
+  const stream = pinoElasticSearch(opts)
+
+  stream.on('error', (error) => {
+    console.error('Elasticsearch client error:', error)
+  })
+  stream.on('insertError', (error) => {
+    console.error('Elasticsearch server error:', error)
+  })
+
   if (opts.rejectUnauthorized) {
     opts.rejectUnauthorized = opts.rejectUnauthorized !== 'false'
   }
