@@ -52,7 +52,7 @@ function pinoElasticSearch (opts) {
       return new Date().toISOString()
     }
     return value
-  })
+  }, { autoDestroy: true })
 
   const client = new Client({
     node: opts.node,
@@ -90,6 +90,10 @@ function pinoElasticSearch (opts) {
     (stats) => splitter.emit('insert', stats),
     (err) => splitter.emit('error', err)
   )
+
+  splitter._destroy = function (err, cb) {
+    b.then(() => cb(err), (e2) => cb(e2 || err))
+  }
 
   function getIndexName (time = new Date().toISOString()) {
     if (buildIndexName) {
