@@ -15,12 +15,12 @@ const consistency = 'one'
 const node = 'http://localhost:9200'
 const timeout = 5000
 
-tap.tearDown(() => {
+tap.teardown(() => {
   client.close()
 })
 
-var esVersion = 7
-var es
+let esVersion = 7
+let es
 
 tap.beforeEach(async () => {
   if (es) {
@@ -46,7 +46,7 @@ test('store a log line', { timeout }, async (t) => {
   setImmediate(() => instance.end())
 
   const [stats] = await once(instance, 'insert')
-  t.strictEqual(stats.total, 1)
+  t.equal(stats.total, 1)
   const documents = await client.helpers.search({
     index,
     type: esVersion >= 7 ? undefined : type,
@@ -54,7 +54,7 @@ test('store a log line', { timeout }, async (t) => {
       query: { match_all: {} }
     }
   })
-  t.strictEqual(documents[0].msg, 'hello world')
+  t.equal(documents[0].msg, 'hello world')
 })
 
 test('Ignores a boolean line even though it is JSON-parseable', { timeout }, (t) => {
@@ -112,7 +112,7 @@ test('store an deeply nested log line', { timeout }, async (t) => {
   setImmediate(() => instance.end())
 
   const [stats] = await once(instance, 'insert')
-  t.strictEqual(stats.total, 1)
+  t.equal(stats.total, 1)
   const documents = await client.helpers.search({
     index,
     type: esVersion >= 7 ? undefined : type,
@@ -120,7 +120,7 @@ test('store an deeply nested log line', { timeout }, async (t) => {
       query: { match_all: {} }
     }
   })
-  t.strictEqual(documents[0].deeply.nested.hello, 'world', 'obj gets linearized')
+  t.equal(documents[0].deeply.nested.hello, 'world', 'obj gets linearized')
 })
 
 test('store lines in bulk', { timeout }, async (t) => {
@@ -138,7 +138,7 @@ test('store lines in bulk', { timeout }, async (t) => {
   setImmediate(() => instance.end())
 
   const [stats] = await once(instance, 'insert')
-  t.strictEqual(stats.total, 5)
+  t.equal(stats.total, 5)
   const documents = await client.helpers.search({
     index,
     type: esVersion >= 7 ? undefined : type,
@@ -147,7 +147,7 @@ test('store lines in bulk', { timeout }, async (t) => {
     }
   })
   for (const doc of documents) {
-    t.strictEqual(doc.msg, 'hello world')
+    t.equal(doc.msg, 'hello world')
   }
 })
 
@@ -167,7 +167,7 @@ test('replaces date in index', { timeout }, async (t) => {
   setImmediate(() => instance.end())
 
   const [stats] = await once(instance, 'insert')
-  t.strictEqual(stats.total, 1)
+  t.equal(stats.total, 1)
   const documents = await client.helpers.search({
     index: index.replace('%{DATE}', new Date().toISOString().substring(0, 10)),
     type: esVersion >= 7 ? undefined : type,
@@ -175,7 +175,7 @@ test('replaces date in index', { timeout }, async (t) => {
       query: { match_all: {} }
     }
   })
-  t.strictEqual(documents[0].msg, 'hello world')
+  t.equal(documents[0].msg, 'hello world')
 })
 
 test('replaces date in index during bulk insert', { timeout }, async (t) => {
@@ -199,7 +199,7 @@ test('replaces date in index during bulk insert', { timeout }, async (t) => {
   setImmediate(() => instance.end())
 
   const [stats] = await once(instance, 'insert')
-  t.strictEqual(stats.total, 5)
+  t.equal(stats.total, 5)
   const documents = await client.helpers.search({
     index: index.replace('%{DATE}', new Date().toISOString().substring(0, 10)),
     type: esVersion >= 7 ? undefined : type,
@@ -208,7 +208,7 @@ test('replaces date in index during bulk insert', { timeout }, async (t) => {
     }
   })
   for (const doc of documents) {
-    t.strictEqual(doc.msg, 'hello world')
+    t.equal(doc.msg, 'hello world')
   }
 })
 
@@ -224,7 +224,7 @@ test('Use ecs format', { timeout }, async (t) => {
   setImmediate(() => instance.end())
 
   const [stats] = await once(instance, 'insert')
-  t.strictEqual(stats.total, 1)
+  t.equal(stats.total, 1)
   const documents = await client.helpers.search({
     index,
     type: esVersion >= 7 ? undefined : type,
@@ -240,7 +240,7 @@ test('dynamic index name', { timeout }, async (t) => {
 
   let indexNameGenerated
   const index = function (time) {
-    t.like(time, new Date().toISOString().substring(0, 10))
+    t.match(time, new Date().toISOString().substring(0, 10))
     indexNameGenerated = `dynamic-index-${process.pid}`
     return indexNameGenerated
   }
@@ -253,7 +253,7 @@ test('dynamic index name', { timeout }, async (t) => {
   setImmediate(() => instance.end())
 
   const [stats] = await once(instance, 'insert')
-  t.strictEqual(stats.total, 1)
+  t.equal(stats.total, 1)
   const documents = await client.helpers.search({
     index: indexNameGenerated,
     type: esVersion >= 7 ? undefined : type,
@@ -261,7 +261,7 @@ test('dynamic index name', { timeout }, async (t) => {
       query: { match_all: {} }
     }
   })
-  t.strictEqual(documents[0].msg, 'hello world')
+  t.equal(documents[0].msg, 'hello world')
 })
 
 test('dynamic index name during bulk insert', { timeout }, async (t) => {
@@ -269,7 +269,7 @@ test('dynamic index name during bulk insert', { timeout }, async (t) => {
 
   let indexNameGenerated
   const index = function (time) {
-    t.like(time, new Date().toISOString().substring(0, 10))
+    t.match(time, new Date().toISOString().substring(0, 10))
     indexNameGenerated = `dynamic-index-${process.pid + 1}`
     return indexNameGenerated
   }
@@ -286,7 +286,7 @@ test('dynamic index name during bulk insert', { timeout }, async (t) => {
   setImmediate(() => instance.end())
 
   const [stats] = await once(instance, 'insert')
-  t.strictEqual(stats.total, 5)
+  t.equal(stats.total, 5)
   const documents = await client.helpers.search({
     index: indexNameGenerated,
     type: esVersion >= 7 ? undefined : type,
@@ -295,6 +295,6 @@ test('dynamic index name during bulk insert', { timeout }, async (t) => {
     }
   })
   for (const doc of documents) {
-    t.strictEqual(doc.msg, 'hello world')
+    t.equal(doc.msg, 'hello world')
   }
 })
