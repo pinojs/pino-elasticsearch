@@ -294,6 +294,36 @@ const streamToElastic = pinoElastic({
 
 For a full list of authentication options when using elastic, check out the [authentication configuration docs](https://www.elastic.co/guide/en/elasticsearch/client/javascript-api/current/auth-reference.html)
 
+## Use as a module
+
+use pino-elasticsearch as a module is simple, use [pino-multi-stream](https://www.npmjs.com/package/pino-multi-stream) to send log to multi transport, for example:
+
+```js
+const pinoms = require('pino-multi-stream')
+const pinoEs = require('pino-elasticsearch')({
+    host: '192.168.1.220',
+    index: 'zb',
+    port: '9200'
+})
+
+const logger = pinoms({
+    streams: [
+      {level: 'error', stream: process.stderr}, // an "error" level destination stream
+      {level: 'info', stream: process.stdout}, // an "info" level destination stream
+      {stream: pinoEs}
+    ]
+  })
+
+
+logger.info({'msg': {'info': 'info'}})
+logger.debug('debug')
+logger.warn('warn')
+logger.error('error')
+
+```
+
+*** Notice, the `host` and `port` parameters of `pino-elasticsearch` are required ***
+
 ## Setup and Testing
 
 Setting up pino-elasticsearch is easy, and you can use the bundled
