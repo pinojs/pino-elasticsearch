@@ -3,8 +3,7 @@
 /* eslint no-prototype-builtins: 0 */
 
 const split = require('split2')
-const { Client } = require('@elastic/elasticsearch')
-const Parse = require('fast-json-parse')
+const { Client, Connection } = require('@elastic/elasticsearch')
 
 function pinoElasticSearch (opts) {
   if (opts['bulk-size']) {
@@ -13,12 +12,15 @@ function pinoElasticSearch (opts) {
   }
 
   const splitter = split(function (line) {
-    var parsed = new Parse(line)
-    if (parsed.err) {
-      this.emit('unknown', line, parsed.err)
+    var value
+
+    try {
+      value = JSON.parse(line)
+    } catch (error) {
+      this.emit('unknown', line, error)
       return
     }
-    var value = parsed.value
+
     if (typeof value === 'boolean') {
       this.emit('unknown', line, 'Boolean value ignored')
       return
@@ -50,9 +52,15 @@ function pinoElasticSearch (opts) {
       return new Date().toISOString()
     }
     return value
-  })
+  }, { autoDestroy: true })
 
-  const client = new Client({ node: opts.node, auth: opts.auth, cloud: opts.cloud })
+  const client = new Client({
+    node: opts.node,
+    auth: opts.auth,
+    cloud: opts.cloud,
+    ssl: { rejectUnauthorized: opts.rejectUnauthorized },
+    Connection: opts.Connection || Connection
+  })
 
   const esVersion = Number(opts['es-version']) || 7
   const index = opts.index || 'pino'
@@ -82,6 +90,10 @@ function pinoElasticSearch (opts) {
     (stats) => splitter.emit('insert', stats),
     (err) => splitter.emit('error', err)
   )
+
+  splitter._destroy = function (err, cb) {
+    b.then(() => cb(err), (e2) => cb(e2 || err))
+  }
 
   function getIndexName (time = new Date().toISOString()) {
     if (buildIndexName) {

@@ -37,6 +37,8 @@ npm install pino-elasticsearch -g
                             (can only be used in tandem with the 'username' flag)
   -k  | --api-key           Api key for authentication instead of username/password combination
   -c  | --cloud             Id of the elastic cloud node to connect to
+  -r  | --read-config       the name of config file
+  --rejectUnauthorized      Reject any connection which is not authorized with the list of supplied CAs; default: true
 
 ```
 
@@ -58,6 +60,131 @@ const logger = pino({ level: 'info' }, streamToElastic)
 
 logger.info('hello world')
 // ...
+```
+
+### Using multiple streams (output to Console and Elasticsearch)
+
+If you want to output to multiple streams (transports and console)), the simplest way is to use the `pino-multi-stream` library and register a stream per output.
+
+```js
+const pinoElastic = require('pino-elasticsearch');
+const pinoMultiStream = require('pino-multi-stream').multistream;
+
+const streamToElastic = pinoElastic({
+  index: 'an-index',
+  consistency: 'one',
+  node: 'http://localhost:9200',
+  'es-version': 7,
+  'flush-bytes': 1000
+});
+
+const pinoOptions = {};
+
+return pino(pinoOptions, pinoMultiStream([
+  { stream: process.stdout },
+  { stream: streamToElastic },
+]));
+```
+
+You can learn more about `pino-multi-stream` here: https://github.com/pinojs/pino-multi-stream.
+
+### Custom Connection
+
+If you want to use a custom Connection class for the Elasticsearch client, you can pass it as an option when using as a module. See the Elasticsearch client docs for [Connection](https://www.elastic.co/guide/en/elasticsearch/client/javascript-api/master/advanced-config.html#_connection).
+
+```js
+const pino = require('pino')
+const pinoElastic = require('pino-elasticsearch')
+
+const Connection = <custom Connection>
+
+const streamToElastic = pinoElastic({
+  index: 'an-index',
+  consistency: 'one',
+  node: 'http://localhost:9200',
+  'es-version': 7,
+  'flush-bytes': 1000,
+  Connection
+})
+
+const logger = pino({ level: 'info' }, streamToElastic)
+
+logger.info('hello world')
+// ...
+```
+
+### Troubleshooting
+
+Assuming your Elasticsearch instance is running and accessible, there are a couple of common problems that will cause indices or events (log entries) to not be created in Elasticsearch when using this library.  Developers can get feedback on these problems by listening for events returned by the stream handler.
+
+The stream handler returned from the default factory function is an [`EventEmitter`](https://nodejs.org/api/events.html#events_class_eventemitter).  Developers can use this interface to debug issues encountered by the `pino-elasticsearch` library.
+
+```js
+const pinoElastic = require('pino-elasticsearch');
+
+const streamToElastic = pinoElastic({
+  index: 'an-index',
+  consistency: 'one',
+  node: 'http://localhost:9200',
+  'es-version': 7,
+  'flush-bytes': 1000
+})
+
+streamToElastic.on('<event>', (error) => console.log(event));
+```
+
+The following table lists the events emitted by the stream handler:
+
+| Event | Callback Signature | Description |
+| ----- | ------------------ | ----------- |
+| `unknown` | `(line: string, error: string) => void` | Event received by `pino-elasticsearch` is unparseable (via `JSON.parse`) |
+| `insertError` | `(error: Error & { document: Record<string, any> }) => void` | The bulk insert request to Elasticsearch failed (records dropped). |
+| `insert` | `(stats: Record<string, any>) => void` | Called when an insert was successfully performed |
+| `error` | `(error: Error) => void` | Called when the Elasticsearch client fails for some other reason |
+
+There are a few common problems developers will encounter when initially using this library.  The next section discusses these issues.
+
+**Pino output is not JSON**
+
+Any transform of the stream (like `pino-pretty`) that results in an non-JSON stream output will be ignored (the `unknown` event will be emitted).
+
+```js
+const pino = require('pino');
+const pinoElastic = require('pino-elasticsearch');
+
+const streamToElastic = pinoElastic({
+  index: 'an-index',
+  consistency: 'one',
+  node: 'http://localhost:9200',
+  'es-version': 7,
+  'flush-bytes': 1000
+})
+
+streamToElastic.on(
+  'unknown',
+  (line, error) =>
+    console.log('Expect to see a lot of these with Pino Pretty turned on.')
+);
+
+const logger = pino({
+  prettyPrint: true,
+}, streamToElastic)
+```
+
+**Events do not match index schema/mappings**
+
+Elasticsearch schema mappings are strict and if events do not match their format, the events will be dropped.  A typical example is if you use the default `pino` format with the `logs-` index in Elasticsearch.  The default installation of Elasticsearch includes a data pipeline mapped to the `logs-` index prefix.  This is intended to be used by the Beats and Logstash aggregators and requires `@timestamp` and `@message` fields.  The default `pino` setup uses `time` and `msg`.  Attempting to write events to the `logs-` index without mapping/transforming the `pino` schema will result in events being dropped.
+
+Developers can troubleshoot insert errors by watching for the `insertError` event.
+
+```js
+streamToElastic.on(
+  'insertError',
+  (error) => {
+    const documentThatFailed = error.document;
+    console.log(`An error occurred insert document:`, documentThatFailed);
+  }
+);
 ```
 
 ### ECS support
@@ -195,6 +322,36 @@ const streamToElastic = pinoElastic({
 
 For a full list of authentication options when using elastic, check out the [authentication configuration docs](https://www.elastic.co/guide/en/elasticsearch/client/javascript-api/current/auth-reference.html)
 
+## Use as a module
+
+use pino-elasticsearch as a module is simple, use [pino-multi-stream](https://www.npmjs.com/package/pino-multi-stream) to send log to multi transport, for example:
+
+```js
+const pinoms = require('pino-multi-stream')
+const pinoEs = require('pino-elasticsearch')({
+    host: '192.168.1.220',
+    index: 'zb',
+    port: '9200'
+})
+
+const logger = pinoms({
+    streams: [
+      {level: 'error', stream: process.stderr}, // an "error" level destination stream
+      {level: 'info', stream: process.stdout}, // an "info" level destination stream
+      {stream: pinoEs}
+    ]
+  })
+
+
+logger.info({'msg': {'info': 'info'}})
+logger.debug('debug')
+logger.warn('warn')
+logger.error('error')
+
+```
+
+*** Notice, the `host` and `port` parameters of `pino-elasticsearch` are required ***
+
 ## Setup and Testing
 
 Setting up pino-elasticsearch is easy, and you can use the bundled
@@ -204,7 +361,7 @@ Setting up pino-elasticsearch is easy, and you can use the bundled
 
 You will need [docker](https://www.docker.com/) and
 [docker-compose](https://docs.docker.com/compose/), then in this project
-folder, launch `docker-compose up`.
+folder, launch `docker-compose -f docker-compose-v7.yml up`.
 
 You can test it by launching `node example | pino-elasticsearch`, in
 this project folder. You will need to have `pino-elasticsearch`
