@@ -34,7 +34,10 @@ function start (opts) {
   }
 
   const stream = pinoElasticSearch(opts)
-
+    
+  stream.on('unknown', async (error) => {
+    console.error('Elasticsearch client json error:', error);
+  });
   stream.on('error', (error) => {
     console.error('Elasticsearch client error:', error)
   })
@@ -45,7 +48,7 @@ function start (opts) {
   if (opts.rejectUnauthorized) {
     opts.rejectUnauthorized = opts.rejectUnauthorized !== 'false'
   }
-  pump(process.stdin, pinoElasticSearch(opts))
+  pump(process.stdin, stream)
 }
 
 const flags = minimist(process.argv.slice(2), {
