@@ -34,9 +34,9 @@ function start (opts) {
   }
 
   const stream = pinoElasticSearch(opts)
-    
-  stream.on('unknown', (error) => {
-    console.error('Elasticsearch client json error:', error);
+
+  stream.on('unknown', (line, error) => {
+    console.error('Elasticsearch client json error in line:\n' + line + '\nError:', error);
   });
   stream.on('error', (error) => {
     console.error('Elasticsearch client error:', error)
