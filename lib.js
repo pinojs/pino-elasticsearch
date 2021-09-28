@@ -66,16 +66,23 @@ function pinoElasticSearch (opts) {
   const index = opts.index || 'pino'
   const buildIndexName = typeof index === 'function' ? index : null
   const type = esVersion >= 7 ? undefined : (opts.type || 'log')
+  const opType = esVersion >= 7 ? opts.op_type : undefined
   const b = client.helpers.bulk({
     datasource: splitter,
     flushBytes: opts['flush-bytes'] || 1000,
     flushInterval: opts['flush-interval'] || 30000,
     refreshOnCompletion: getIndexName(),
     onDocument (doc) {
+      const date = doc.time || doc['@timestamp']
+      if (opType === 'create') {
+        doc['@timestamp'] = date
+      }
+
       return {
         index: {
-          _index: getIndexName(doc.time || doc['@timestamp']),
-          _type: type
+          _index: getIndexName(date),
+          _type: type,
+          op_type: opType
         }
       }
     },

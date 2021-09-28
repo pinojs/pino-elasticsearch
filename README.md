@@ -235,6 +235,22 @@ const streamToElastic = pinoElastic({
 
 The function **must** be sync, doesn't throw and return a string.
 
+#### Datastreams
+
+Indexing to datastreams requires the `op_type` to be set to `create`:
+```js
+const pino = require('pino')
+const pinoElastic = require('pino-elasticsearch')
+
+const streamToElastic = pinoElastic({
+  index: "type-dataset-namespace",
+  consistency: 'one',
+  node: 'http://localhost:9200',
+  op_type: 'create'
+})
+// ...
+```
+
 #### Error handling
 ```js
 const pino = require('pino')
