@@ -230,15 +230,15 @@ test('make sure `flush-interval` is passed to bulk request', (t) => {
 })
 
 test('make sure `op_type` is passed to bulk onDocument request', (t) => {
-  t.plan(3)
+  t.plan(2)
 
   const Client = function (config) {}
 
   Client.prototype.helpers = {
     async bulk (opts) {
       const result = opts.onDocument({})
-      t.equal(result.index?._index, 'logs-pino-test', '_index should be correctly set to `logs-pino-test`')
-      t.equal(result.index?.op_type, 'create', '`op_type` should be set to `create`')
+      t.equal(result.index._index, 'logs-pino-test', '_index should be correctly set to `logs-pino-test`')
+      t.equal(result.index.op_type, 'create', '`op_type` should be set to `create`')
       t.end()
     }
   }
