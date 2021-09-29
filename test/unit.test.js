@@ -14,6 +14,14 @@ const options = {
   node: 'http://localhost:9200'
 }
 
+const dsOptions = {
+  index: 'logs-pino-test',
+  type: 'log',
+  consistency: 'one',
+  node: 'http://localhost:9200',
+  op_type: 'create'
+}
+
 test('make sure date format is valid', (t) => {
   t.type(fix.datetime.object, 'string')
   t.equal(fix.datetime.object, fix.datetime.string)
@@ -217,6 +225,52 @@ test('make sure `flush-interval` is passed to bulk request', (t) => {
 
   options['flush-interval'] = 12345
   const instance = elastic(options)
+  const log = pino(instance)
+  log.info(['info'], 'abc')
+})
+
+test('make sure `op_type` is passed to bulk onDocument request', (t) => {
+  t.plan(2)
+
+  const Client = function (config) {}
+
+  Client.prototype.helpers = {
+    async bulk (opts) {
+      const result = opts.onDocument({})
+      t.equal(result.index._index, 'logs-pino-test', '_index should be correctly set to `logs-pino-test`')
+      t.equal(result.index.op_type, 'create', '`op_type` should be set to `create`')
+      t.end()
+    }
+  }
+  const elastic = proxyquire('../', {
+    '@elastic/elasticsearch': { Client }
+  })
+
+  const instance = elastic(dsOptions)
+  const log = pino(instance)
+  log.info(['info'], 'abc')
+})
+
+test('make sure `@timestamp` is correctly set when `op_type` is `create`', (t) => {
+  t.plan(1)
+
+  const document = {
+    time: '2021-09-01T01:01:01.038Z'
+  }
+  const Client = function (config) {}
+
+  Client.prototype.helpers = {
+    async bulk (opts) {
+      opts.onDocument(document)
+      t.equal(document['@timestamp'], '2021-09-01T01:01:01.038Z', 'Document @timestamp does not equal the provided timestamp')
+      t.end()
+    }
+  }
+  const elastic = proxyquire('../', {
+    '@elastic/elasticsearch': { Client }
+  })
+
+  const instance = elastic(dsOptions)
   const log = pino(instance)
   log.info(['info'], 'abc')
 })
