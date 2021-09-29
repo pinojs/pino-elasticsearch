@@ -9,7 +9,9 @@ const test = require('tap').test
 const { Client } = require('@elastic/elasticsearch')
 const client = new Client({ node: 'http://localhost:9200' })
 const EcsFormat = require('@elastic/ecs-pino-format')
+
 const index = 'pinotest'
+const streamIndex = 'logs-pino-test'
 const type = 'log'
 const consistency = 'one'
 const node = 'http://localhost:9200'
@@ -20,7 +22,11 @@ tap.teardown(() => {
 })
 
 let esVersion = 7
+let esMinor = 15
 let es
+
+const supportsDatastreams =
+  () => esVersion > 7 || (esVersion === 7 && esMinor >= 9)
 
 tap.beforeEach(async () => {
   if (es) {
@@ -31,8 +37,14 @@ tap.beforeEach(async () => {
   }
   const result = await client.info()
   esVersion = Number(result.body.version.number.split('.')[0])
+  esMinor = Number(result.body.version.number.split('.')[1])
   await client.indices.delete({ index }, { ignore: [404] })
   await client.indices.create({ index })
+
+  if (supportsDatastreams()) {
+    await client.indices.deleteDataStream({ name: streamIndex }, { ignore: [404] })
+    await client.indices.createDataStream({ name: streamIndex })
+  }
 })
 
 test('store a log line', { timeout }, async (t) => {
@@ -297,4 +309,46 @@ test('dynamic index name during bulk insert', { timeout }, async (t) => {
   for (const doc of documents) {
     t.equal(doc.msg, 'hello world')
   }
+})
+
+test('handle datastreams during bulk insert', { timeout }, async (t) => {
+  if (supportsDatastreams()) {
+    // Arrange
+    t.plan(6)
+
+    const instance = elastic({ index: streamIndex, type, consistency, node, 'es-version': esVersion, op_type: 'create' })
+    const log = pino(instance)
+
+    // Act
+    const logEntries = [
+      { time: '2021-09-01T01:01:01.732Z' },
+      { time: '2021-09-01T01:01:02.400Z' },
+      { time: '2021-09-01T01:01:02.948Z' },
+      { time: '2021-09-02T01:01:03.731Z' },
+      { time: '2021-09-02T03:00:45.704Z' }
+    ]
+
+    logEntries.forEach(x => log.info(x, 'Hello world!'))
+
+    setImmediate(() => instance.end())
+
+    // Assert
+    const [stats] = await once(instance, 'insert')
+    t.equal(stats.successful, 5)
+
+    const documents = await client.helpers.search({
+      index: streamIndex,
+      type: esVersion >= 7 ? undefined : type,
+      body: {
+        query: { match_all: {} }
+      }
+    })
+
+    for (let i = 0; i < documents.length; i++) {
+      t.equal(documents[i]['@timestamp'], logEntries[i].time)
+    }
+  } else {
+    t.comment('The current elasticsearch version does not support datastreams yet!')
+  }
+  t.end()
 })
