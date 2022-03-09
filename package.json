@@ -31,7 +31,7 @@
     "tap": "^16.0.0"
   },
   "dependencies": {
-    "@elastic/elasticsearch": "^7.7.1",
+    "@elastic/elasticsearch": "^8.1.0",
     "minimist": "^1.2.5",
     "pump": "^3.0.0",
     "readable-stream": "^3.6.0",
