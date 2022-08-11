@@ -36,8 +36,8 @@ tap.beforeEach(async () => {
     }
   }
   const result = await client.info()
-  esVersion = Number(result.body.version.number.split('.')[0])
-  esMinor = Number(result.body.version.number.split('.')[1])
+  esVersion = Number(result.version.number.split('.')[0])
+  esMinor = Number(result.version.number.split('.')[1])
   await client.indices.delete({ index }, { ignore: [404] })
   await client.indices.create({ index })
 
