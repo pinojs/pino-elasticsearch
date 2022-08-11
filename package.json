@@ -47,8 +47,5 @@
   "homepage": "https://github.com/pinojs/pino-elasticsearch#readme",
   "directories": {
     "test": "test"
-  },
-  "engines": {
-    "node": ">=10"
   }
 }
