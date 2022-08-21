@@ -377,7 +377,7 @@ Setting up pino-elasticsearch is easy, and you can use the bundled
 
 You will need [docker](https://www.docker.com/) and
 [docker-compose](https://docs.docker.com/compose/), then in this project
-folder, launch `docker-compose -f docker-compose-v7.yml up`.
+folder, launch `docker-compose -f docker-compose-v8.yml up`.
 
 You can test it by launching `node example | pino-elasticsearch`, in
 this project folder. You will need to have `pino-elasticsearch`
