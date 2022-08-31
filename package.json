@@ -34,7 +34,6 @@
     "@elastic/elasticsearch": "^8.2.1",
     "minimist": "^1.2.5",
     "pump": "^3.0.0",
-    "readable-stream": "^4.0.0",
     "split2": "^4.0.0"
   },
   "repository": {
