@@ -45,7 +45,7 @@ function initializeBulkHandler(opts, client, splitter) {
 
   // Reset the ondestroy
   splitter.destroy = (err) => {
-    client.connectionPool.resurrect({ name: 'elasticsearch-js', requestId: '696969' })
+    client.connectionPool.resurrect({ name: 'elasticsearch-js' })
     initializeBulkHandler(opts, client, splitter)
   }
 
