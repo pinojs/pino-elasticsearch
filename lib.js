@@ -12,7 +12,7 @@ function initializeBulkHandler(opts, client, splitter) {
   const type = esVersion >= 7 ? undefined : (opts.type || 'log')
   const opType = esVersion >= 7 ? opts.op_type : undefined
 
-  const b = client.helpers.bulk({
+  const bulkInsert = client.helpers.bulk({
     datasource: splitter,
     flushBytes: opts['flush-bytes'] || 1000,
     flushInterval: opts['flush-interval'] || 30000,
@@ -38,7 +38,7 @@ function initializeBulkHandler(opts, client, splitter) {
     }
   })
 
-  b.then(
+  bulkInsert.then(
     (stats) => splitter.emit('insert', stats),
     (err) => splitter.emit('error', err)
   )
