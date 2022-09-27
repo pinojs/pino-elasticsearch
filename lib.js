@@ -3,7 +3,59 @@
 /* eslint no-prototype-builtins: 0 */
 
 const split = require('split2')
-const { Client } = require('@elastic/elasticsearch')
+const { Client, Connection } = require('@elastic/elasticsearch')
+
+function initializeBulkHandler(opts, client, splitter) {
+  const esVersion = Number(opts['es-version']) || 7
+  const index = opts.index || 'pino'
+  const buildIndexName = typeof index === 'function' ? index : null
+  const type = esVersion >= 7 ? undefined : (opts.type || 'log')
+  const opType = esVersion >= 7 ? opts.op_type : undefined
+
+  const b = client.helpers.bulk({
+    datasource: splitter,
+    flushBytes: opts['flush-bytes'] || 1000,
+    flushInterval: opts['flush-interval'] || 30000,
+    refreshOnCompletion: getIndexName(),
+    onDocument (doc) {
+      const date = doc.time || doc['@timestamp']
+      if (opType === 'create') {
+        doc['@timestamp'] = date
+      }
+
+      return {
+        index: {
+          _index: getIndexName(date),
+          _type: type,
+          op_type: opType
+        }
+      }
+    },
+    onDrop (doc) {
+      const error = new Error('Dropped document')
+      error.document = doc
+      splitter.emit('insertError', error)
+    }
+  })
+
+  b.then(
+    (stats) => splitter.emit('insert', stats),
+    (err) => splitter.emit('error', err)
+  )
+
+  // Reset the ondestroy
+  splitter.destroy = (err) => {
+    client.connectionPool.resurrect({ name: 'elasticsearch-js', requestId: '696969' })
+    initializeBulkHandler(opts, client, splitter)
+  }
+
+  function getIndexName (time = new Date().toISOString()) {
+    if (buildIndexName) {
+      return buildIndexName(time)
+    }
+    return index.replace('%{DATE}', time.substring(0, 10))
+  }
+}
 
 function pinoElasticSearch (opts) {
   if (opts['bulk-size']) {
@@ -54,64 +106,15 @@ function pinoElasticSearch (opts) {
     return value
   }, { autoDestroy: true })
 
-  const clientOpts = {
+  const client = new Client({
     node: opts.node,
     auth: opts.auth,
     cloud: opts.cloud,
-    ssl: { rejectUnauthorized: opts.rejectUnauthorized }
-  }
-  if (opts.Connection) {
-    clientOpts.Connection = opts.Connection
-  }
-
-  const client = new Client(clientOpts)
-
-  const esVersion = Number(opts['es-version']) || 7
-  const index = opts.index || 'pino'
-  const buildIndexName = typeof index === 'function' ? index : null
-  const type = esVersion >= 7 ? undefined : (opts.type || 'log')
-  const opType = esVersion >= 7 ? opts.op_type : undefined
-  const b = client.helpers.bulk({
-    datasource: splitter,
-    flushBytes: opts['flush-bytes'] || 1000,
-    flushInterval: opts['flush-interval'] || 30000,
-    refreshOnCompletion: getIndexName(),
-    onDocument (doc) {
-      const date = doc.time || doc['@timestamp']
-      if (opType === 'create') {
-        doc['@timestamp'] = date
-      }
-
-      return {
-        index: {
-          _index: getIndexName(date),
-          _type: type,
-          op_type: opType
-        }
-      }
-    },
-    onDrop (doc) {
-      const error = new Error('Dropped document')
-      error.document = doc
-      splitter.emit('insertError', error)
-    }
+    ssl: { rejectUnauthorized: opts.rejectUnauthorized },
+    Connection: opts.Connection || Connection
   })
 
-  b.then(
-    (stats) => splitter.emit('insert', stats),
-    (err) => splitter.emit('error', err)
-  )
-
-  splitter._destroy = function (err, cb) {
-    b.then(() => cb(err), (e2) => cb(e2 || err))
-  }
-
-  function getIndexName (time = new Date().toISOString()) {
-    if (buildIndexName) {
-      return buildIndexName(time)
-    }
-    return index.replace('%{DATE}', time.substring(0, 10))
-  }
+  initializeBulkHandler(opts, client, splitter)
 
   return splitter
 }
