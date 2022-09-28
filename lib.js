@@ -3,9 +3,9 @@
 /* eslint no-prototype-builtins: 0 */
 
 const split = require('split2')
-const { Client, Connection } = require('@elastic/elasticsearch')
+const { Client } = require('@elastic/elasticsearch')
 
-function initializeBulkHandler(opts, client, splitter) {
+function initializeBulkHandler (opts, client, splitter) {
   const esVersion = Number(opts['es-version']) || 7
   const index = opts.index || 'pino'
   const buildIndexName = typeof index === 'function' ? index : null
@@ -43,10 +43,12 @@ function initializeBulkHandler(opts, client, splitter) {
     (err) => splitter.emit('error', err)
   )
 
-  // Resurrect connection pool on destroy 
-  splitter.destroy = (err) => {
-    client.connectionPool.resurrect({ name: 'elasticsearch-js' })
-    initializeBulkHandler(opts, client, splitter)
+  // Resurrect connection pool on destroy
+  splitter.destroy = () => {
+    if (typeof client.connectionPool.resurrect === 'function') {
+      client.connectionPool.resurrect({ name: 'elasticsearch-js' })
+      initializeBulkHandler(opts, client, splitter)
+    }
   }
 
   function getIndexName (time = new Date().toISOString()) {
@@ -106,13 +108,18 @@ function pinoElasticSearch (opts) {
     return value
   }, { autoDestroy: true })
 
-  const client = new Client({
+  const clientOpts = {
     node: opts.node,
     auth: opts.auth,
     cloud: opts.cloud,
-    ssl: { rejectUnauthorized: opts.rejectUnauthorized },
-    Connection: opts.Connection || Connection
-  })
+    ssl: { rejectUnauthorized: opts.rejectUnauthorized }
+  }
+
+  if (opts.Connection) {
+    clientOpts.Connection = opts.Connection
+  }
+
+  const client = new Client(clientOpts)
 
   initializeBulkHandler(opts, client, splitter)
 
