@@ -12,6 +12,14 @@ function initializeBulkHandler (opts, client, splitter) {
   const type = esVersion >= 7 ? undefined : (opts.type || 'log')
   const opType = esVersion >= 7 ? opts.op_type : undefined
 
+  // Resurrect connection pool on destroy
+  splitter.destroy = () => {
+    if (typeof client.connectionPool.resurrect === 'function') {
+      client.connectionPool.resurrect({ name: 'elasticsearch-js' })
+      initializeBulkHandler(opts, client, splitter)
+    }
+  }
+
   const bulkInsert = client.helpers.bulk({
     datasource: splitter,
     flushBytes: opts['flush-bytes'] || 1000,
@@ -42,14 +50,6 @@ function initializeBulkHandler (opts, client, splitter) {
     (stats) => splitter.emit('insert', stats),
     (err) => splitter.emit('error', err)
   )
-
-  // Resurrect connection pool on destroy
-  splitter.destroy = () => {
-    if (typeof client.connectionPool.resurrect === 'function') {
-      client.connectionPool.resurrect({ name: 'elasticsearch-js' })
-      initializeBulkHandler(opts, client, splitter)
-    }
-  }
 
   function getIndexName (time = new Date().toISOString()) {
     if (buildIndexName) {
