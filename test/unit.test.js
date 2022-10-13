@@ -274,3 +274,33 @@ test('make sure `@timestamp` is correctly set when `op_type` is `create`', (t) =
   const log = pino(instance)
   log.info(['info'], 'abc')
 })
+
+test('resurrect client connection pool when datasource split is destroyed', (t) => {
+  let isResurrected = false
+  const Client = function (config) {}
+
+  Client.prototype.helpers = {
+    bulk: async function (opts) {
+      if (!isResurrected) {
+        opts.datasource.destroy()
+      }
+    }
+  }
+
+  Client.prototype.connectionPool = {
+    resurrect: function () {
+      isResurrected = true
+      t.end()
+    }
+  }
+
+  const elastic = proxyquire('../', {
+    '@elastic/elasticsearch': { Client }
+  })
+
+  const instance = elastic({ ...options })
+  const log = pino(instance)
+
+  const prettyLog = 'Example of a log'
+  log.info(['info'], prettyLog)
+})
