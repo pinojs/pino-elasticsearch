@@ -266,7 +266,7 @@ const streamToElastic = pinoElastic({
 })
 
 // Capture errors like unable to connect Elasticsearch instance.
-steamToElastic.on('error', (error) => {
+streamToElastic.on('error', (error) => {
   console.error('Elasticsearch client error:', error);
 })
 // Capture errors returned from Elasticsearch, "it will be called for everytime a document can't be indexed".
