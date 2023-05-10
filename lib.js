@@ -5,7 +5,7 @@
 const split = require('split2')
 const { Client } = require('@elastic/elasticsearch')
 
-function initializeBulkHandler(opts, client, splitter) {
+function initializeBulkHandler (opts, client, splitter) {
   const esVersion = Number(opts['es-version']) || 7
   const index = opts.index || 'pino'
   const buildIndexName = typeof index === 'function' ? index : null
@@ -25,7 +25,7 @@ function initializeBulkHandler(opts, client, splitter) {
     flushBytes: opts['flush-bytes'] || 1000,
     flushInterval: opts['flush-interval'] || 30000,
     refreshOnCompletion: getIndexName(),
-    onDocument(doc) {
+    onDocument (doc) {
       const date = doc.time || doc['@timestamp']
       if (opType === 'create') {
         doc['@timestamp'] = date
@@ -39,7 +39,7 @@ function initializeBulkHandler(opts, client, splitter) {
         }
       }
     },
-    onDrop(doc) {
+    onDrop (doc) {
       const error = new Error('Dropped document')
       error.document = doc
       splitter.emit('insertError', error)
@@ -51,7 +51,7 @@ function initializeBulkHandler(opts, client, splitter) {
     (err) => splitter.emit('error', err)
   )
 
-  function getIndexName(time = new Date().toISOString()) {
+  function getIndexName (time = new Date().toISOString()) {
     if (buildIndexName) {
       return buildIndexName(time)
     }
@@ -59,7 +59,7 @@ function initializeBulkHandler(opts, client, splitter) {
   }
 }
 
-function pinoElasticSearch(opts) {
+function pinoElasticSearch (opts) {
   if (opts['bulk-size']) {
     process.emitWarning('The "bulk-size" option has been deprecated, "flush-bytes" instead')
     delete opts['bulk-size']
@@ -94,7 +94,7 @@ function pinoElasticSearch(opts) {
       }
     }
 
-    function setDateTimeString(value) {
+    function setDateTimeString (value) {
       if (typeof value === 'object' && value.hasOwnProperty('time')) {
         if (
           (typeof value.time === 'string' && value.time.length) ||
