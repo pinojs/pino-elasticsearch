@@ -115,6 +115,14 @@ function pinoElasticSearch (opts) {
     ssl: { rejectUnauthorized: opts.rejectUnauthorized }
   }
 
+  if (opts.tls) {
+    clientOpts.tls = opts.tls
+  }
+
+  if (opts.caFingerprint) {
+    clientOpts.caFingerprint = opts.caFingerprint
+  }
+
   if (opts.Connection) {
     clientOpts.Connection = opts.Connection
   }
