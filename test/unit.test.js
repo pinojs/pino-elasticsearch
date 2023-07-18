@@ -15,10 +15,7 @@ const options = {
 }
 
 const dsOptions = {
-  index: 'logs-pino-test',
-  type: 'log',
-  consistency: 'one',
-  node: 'http://localhost:9200',
+  ...options,
   op_type: 'create'
 }
 
@@ -32,6 +29,9 @@ test('make sure log is a valid json', (t) => {
   t.plan(4)
   const Client = function (config) {
     t.equal(config.node, options.node)
+  }
+  Client.prototype.diagnostic = {
+    on: () => {}
   }
   Client.prototype.helpers = {
     async bulk (opts) {
@@ -55,6 +55,9 @@ test('make sure log is a valid json', (t) => {
 test('date can be a number', (t) => {
   t.plan(1)
   const Client = function (config) {}
+  Client.prototype.diagnostic = {
+    on: () => {}
+  }
 
   const threeDaysInMillis = 3 * 24 * 60 * 60 * 1000
   const time = new Date(Date.now() - threeDaysInMillis)
@@ -82,6 +85,9 @@ test('Uses the type parameter only with ES < 7 / 1', (t) => {
   const Client = function (config) {
     t.equal(config.node, options.node)
   }
+  Client.prototype.diagnostic = {
+    on: () => {}
+  }
 
   Client.prototype.helpers = {
     async bulk (opts) {
@@ -107,6 +113,9 @@ test('Uses the type parameter only with ES < 7 / 2', (t) => {
   const Client = function (config) {
     t.equal(config.node, options.node)
   }
+  Client.prototype.diagnostic = {
+    on: () => {}
+  }
   Client.prototype.helpers = {
     async bulk (opts) {
       for await (const chunk of opts.datasource) {
@@ -130,6 +139,9 @@ test('ecs format', (t) => {
   t.plan(5)
   const Client = function (config) {
     t.equal(config.node, options.node)
+  }
+  Client.prototype.diagnostic = {
+    on: () => {}
   }
   Client.prototype.helpers = {
     async bulk (opts) {
@@ -155,10 +167,7 @@ test('ecs format', (t) => {
 
 test('auth and cloud parameters are properly passed to client', (t) => {
   const opts = {
-    index: 'pinotest',
-    type: 'log',
-    consistency: 'one',
-    node: 'http://localhost:9200',
+    ...options,
     auth: {
       username: 'user',
       password: 'pass'
@@ -174,6 +183,9 @@ test('auth and cloud parameters are properly passed to client', (t) => {
     t.equal(config.auth, opts.auth)
     t.equal(config.cloud, opts.cloud)
   }
+  Client.prototype.diagnostic = {
+    on: () => {}
+  }
   Client.prototype.helpers = {
     async bulk (opts) {}
   }
@@ -185,10 +197,7 @@ test('auth and cloud parameters are properly passed to client', (t) => {
 
 test('apikey is passed through auth param properly to client', (t) => {
   const opts = {
-    index: 'pinotest',
-    type: 'log',
-    consistency: 'one',
-    node: 'http://localhost:9200',
+    ...options,
     auth: {
       apiKey: 'aHR0cHM6Ly9leGFtcGxlLmNvbQ'
     }
@@ -198,6 +207,9 @@ test('apikey is passed through auth param properly to client', (t) => {
   const Client = function (config) {
     t.equal(config.node, opts.node)
     t.equal(config.auth, opts.auth)
+  }
+  Client.prototype.diagnostic = {
+    on: () => {}
   }
   Client.prototype.helpers = {
     async bulk (opts) {}
@@ -212,6 +224,9 @@ test('make sure `flush-interval` is passed to bulk request', (t) => {
   t.plan(2)
   const Client = function (config) {
     t.equal(config.node, options.node)
+  }
+  Client.prototype.diagnostic = {
+    on: () => {}
   }
   Client.prototype.helpers = {
     async bulk (opts) {
@@ -233,12 +248,15 @@ test('make sure `op_type` is passed to bulk onDocument request', (t) => {
   t.plan(2)
 
   const Client = function (config) {}
+  Client.prototype.diagnostic = {
+    on: () => {}
+  }
 
   Client.prototype.helpers = {
     async bulk (opts) {
       const result = opts.onDocument({})
-      t.equal(result.index._index, 'logs-pino-test', '_index should be correctly set to `logs-pino-test`')
-      t.equal(result.index.op_type, 'create', '`op_type` should be set to `create`')
+      t.equal(result.index._index, dsOptions.index, `_index should be correctly set to \`${dsOptions.index}\``)
+      t.equal(result.index.op_type, dsOptions.op_type, `\`op_type\` should be set to \`${dsOptions.op_type}\``)
       t.end()
     }
   }
@@ -258,6 +276,9 @@ test('make sure `@timestamp` is correctly set when `op_type` is `create`', (t) =
     time: '2021-09-01T01:01:01.038Z'
   }
   const Client = function (config) {}
+  Client.prototype.diagnostic = {
+    on: () => {}
+  }
 
   Client.prototype.helpers = {
     async bulk (opts) {
@@ -278,6 +299,9 @@ test('make sure `@timestamp` is correctly set when `op_type` is `create`', (t) =
 test('resurrect client connection pool when datasource split is destroyed', (t) => {
   let isResurrected = false
   const Client = function (config) {}
+  Client.prototype.diagnostic = {
+    on: () => {}
+  }
 
   Client.prototype.helpers = {
     bulk: async function (opts) {

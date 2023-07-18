@@ -3,7 +3,11 @@
 /* eslint no-prototype-builtins: 0 */
 
 const split = require('split2')
-const { Client } = require('@elastic/elasticsearch')
+const {
+  Client,
+  ClusterConnectionPool,
+  HttpConnection
+} = require('@elastic/elasticsearch')
 
 function initializeBulkHandler (opts, client, splitter) {
   const esVersion = Number(opts['es-version']) || 7
@@ -16,7 +20,6 @@ function initializeBulkHandler (opts, client, splitter) {
   splitter.destroy = () => {
     if (typeof client.connectionPool.resurrect === 'function') {
       client.connectionPool.resurrect({ name: 'elasticsearch-js' })
-      initializeBulkHandler(opts, client, splitter)
     }
   }
 
@@ -112,7 +115,9 @@ function pinoElasticSearch (opts) {
     node: opts.node,
     auth: opts.auth,
     cloud: opts.cloud,
-    ssl: { rejectUnauthorized: opts.rejectUnauthorized }
+    ssl: { rejectUnauthorized: opts.rejectUnauthorized },
+    Connection: HttpConnection,
+    ConnectionPool: ClusterConnectionPool
   }
 
   if (opts.tls) {
@@ -127,7 +132,15 @@ function pinoElasticSearch (opts) {
     clientOpts.Connection = opts.Connection
   }
 
+  if (opts.ConnectionPool) {
+    clientOpts.Connection = opts.ConnectionPool
+  }
+
   const client = new Client(clientOpts)
+
+  client.diagnostic.on('resurrect', () => {
+    initializeBulkHandler(opts, client, splitter)
+  })
 
   initializeBulkHandler(opts, client, splitter)
 
