@@ -133,7 +133,7 @@ function pinoElasticSearch (opts) {
   }
 
   if (opts.ConnectionPool) {
-    clientOpts.Connection = opts.ConnectionPool
+    clientOpts.ConnectionPool = opts.ConnectionPool
   }
 
   const client = new Client(clientOpts)
