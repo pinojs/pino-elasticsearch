@@ -449,3 +449,67 @@ test('resurrect client connection pool when datasource split is destroyed', (t) 
   const prettyLog = 'Example of a log'
   log.info(['info'], prettyLog)
 })
+
+test('make sure deprecated `rejectUnauthorized` is passed to client constructor', (t) => {
+  t.plan(1)
+
+  const rejectUnauthorized = true
+
+  const Client = function (config) {
+    t.equal(config.ssl.rejectUnauthorized, rejectUnauthorized)
+  }
+
+  Client.prototype.on = () => {}
+  Client.prototype.helpers = { async bulk () {} }
+
+  const elastic = proxyquire('../', {
+    '@elastic/elasticsearch': { Client }
+  })
+
+  const instance = elastic({ ...options, rejectUnauthorized })
+  const log = pino(instance)
+  log.info(['info'], 'abc')
+})
+
+test('make sure `tls.rejectUnauthorized` is passed to client constructor', (t) => {
+  t.plan(1)
+
+  const tls = { rejectUnauthorized: true }
+
+  const Client = function (config) {
+    t.equal(config.ssl.rejectUnauthorized, tls.rejectUnauthorized)
+  }
+
+  Client.prototype.on = () => {}
+  Client.prototype.helpers = { async bulk () {} }
+
+  const elastic = proxyquire('../', {
+    '@elastic/elasticsearch': { Client }
+  })
+
+  const instance = elastic({ ...options, tls })
+  const log = pino(instance)
+  log.info(['info'], 'abc')
+})
+
+test('make sure `tls.rejectUnauthorized` overrides deprecated `rejectUnauthorized`', (t) => {
+  t.plan(1)
+
+  const rejectUnauthorized = true
+  const tls = { rejectUnauthorized: false }
+
+  const Client = function (config) {
+    t.equal(config.ssl.rejectUnauthorized, tls.rejectUnauthorized)
+  }
+
+  Client.prototype.on = () => {}
+  Client.prototype.helpers = { async bulk () {} }
+
+  const elastic = proxyquire('../', {
+    '@elastic/elasticsearch': { Client }
+  })
+
+  const instance = elastic({ ...options, rejectUnauthorized, tls })
+  const log = pino(instance)
+  log.info(['info'], 'abc')
+})

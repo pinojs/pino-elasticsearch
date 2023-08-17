@@ -21,3 +21,7 @@ expectType<typeof options['op_type']>(options.opType)
 expectDeprecated(options['es-version'])
 expectNotDeprecated(options.esVersion)
 expectType<typeof options['es-version']>(options.esVersion)
+
+expectDeprecated(options.rejectUnauthorized)
+expectNotDeprecated(options.tls?.rejectUnauthorized)
+expectType<typeof options.rejectUnauthorized>(options.tls?.rejectUnauthorized)
