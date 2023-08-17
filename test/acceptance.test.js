@@ -1,43 +1,64 @@
 'use strict'
 
 const { once } = require('events')
-const pino = require('pino')
-const IER = require('is-elasticsearch-running')
+const { pino } = require('pino')
 const elastic = require('../')
-const tap = require('tap')
-const test = require('tap').test
+const { teardown, beforeEach, test } = require('tap')
 const { Client } = require('@elastic/elasticsearch')
-const client = new Client({ node: 'http://localhost:9200' })
-const EcsFormat = require('@elastic/ecs-pino-format')
+const ecsFormat = require('@elastic/ecs-pino-format')
 
 const index = 'pinotest'
 const streamIndex = 'logs-pino-test'
 const type = 'log'
-const consistency = 'one'
 const node = 'http://localhost:9200'
 const timeout = 5000
+const auth = {
+  apiKey: process.env.ELASTICSEARCH_API_KEY,
+  bearer: process.env.ELASTICSEARCH_BEARER,
+  username: process.env.ELASTICSEARCH_USERNAME,
+  password: process.env.ELASTICSEARCH_PASSWORD
+}
 
-tap.teardown(() => {
+const client = new Client({ node, auth })
+
+function esIsRunning () {
+  return client.ping()
+    .then(() => true)
+    .catch(() => false)
+}
+
+async function esWaitCluster () {
+  const ATTEMPTS_LIMIT = 10
+
+  for (let i = 0; i <= ATTEMPTS_LIMIT; i += 1) {
+    try {
+      await client.cluster.health({ wait_for_status: 'green', timeout: '60s' })
+    } catch (error) {
+      if (i === ATTEMPTS_LIMIT) {
+        throw error
+      }
+    }
+  }
+}
+
+teardown(() => {
   client.close()
 })
 
 let esVersion = 7
 let esMinor = 15
-let es
 
 const supportsDatastreams =
   () => esVersion > 7 || (esVersion === 7 && esMinor >= 9)
 
-tap.beforeEach(async () => {
-  if (es) {
-    es = IER()
-    if (!await es.isRunning()) {
-      await es.waitCluster()
-    }
+beforeEach(async () => {
+  if (!await esIsRunning()) {
+    await esWaitCluster()
   }
-  const result = await client.info()
-  esVersion = Number(result.version.number.split('.')[0])
-  esMinor = Number(result.version.number.split('.')[1])
+
+  const { body: { version } } = await client.info()
+  esVersion = Number(version.number.split('.')[0])
+  esMinor = Number(version.number.split('.')[1])
   await client.indices.delete({ index }, { ignore: [404] })
   await client.indices.create({ index })
 
@@ -50,7 +71,7 @@ tap.beforeEach(async () => {
 test('store a log line', { timeout }, async (t) => {
   t.plan(2)
 
-  const instance = elastic({ index, type, consistency, node, 'es-version': esVersion })
+  const instance = elastic({ index, type, node, esVersion, auth })
   const log = pino(instance)
 
   log.info('hello world')
@@ -69,10 +90,10 @@ test('store a log line', { timeout }, async (t) => {
   t.equal(documents[0].msg, 'hello world')
 })
 
-test('Ignores a boolean line even though it is JSON-parseable', { timeout }, (t) => {
+test('Ignores a boolean line even though it is JSON-parsable', { timeout }, (t) => {
   t.plan(2)
 
-  const instance = elastic({ index, type, consistency, node })
+  const instance = elastic({ index, type, node, auth })
 
   instance.on('unknown', (obj, body) => {
     t.equal(obj, 'true', 'Object is parsed')
@@ -85,7 +106,7 @@ test('Ignores a boolean line even though it is JSON-parseable', { timeout }, (t)
 test('Ignores "null" being parsed as json', { timeout }, (t) => {
   t.plan(2)
 
-  const instance = elastic({ index, type, consistency, node })
+  const instance = elastic({ index, type, node, auth })
 
   instance.on('unknown', (obj, body) => {
     t.equal(obj, 'null', 'Object is parsed')
@@ -98,7 +119,7 @@ test('Ignores "null" being parsed as json', { timeout }, (t) => {
 test('Can process number being parsed as json', { timeout }, (t) => {
   t.plan(0)
 
-  const instance = elastic({ index, type, consistency, node })
+  const instance = elastic({ index, type, node, auth })
 
   instance.on('unknown', (obj, body) => {
     t.error(obj, body)
@@ -110,7 +131,7 @@ test('Can process number being parsed as json', { timeout }, (t) => {
 test('store an deeply nested log line', { timeout }, async (t) => {
   t.plan(2)
 
-  const instance = elastic({ index, type, consistency, node, 'es-version': esVersion })
+  const instance = elastic({ index, type, node, esVersion, auth })
   const log = pino(instance)
 
   log.info({
@@ -138,7 +159,7 @@ test('store an deeply nested log line', { timeout }, async (t) => {
 test('store lines in bulk', { timeout }, async (t) => {
   t.plan(6)
 
-  const instance = elastic({ index, type, consistency, node, 'es-version': esVersion })
+  const instance = elastic({ index, type, node, esVersion, auth })
   const log = pino(instance)
 
   log.info('hello world')
@@ -167,7 +188,7 @@ test('replaces date in index', { timeout }, async (t) => {
   t.plan(2)
   const index = 'pinotest-%{DATE}'
 
-  const instance = elastic({ index, type, consistency, node, 'es-version': esVersion })
+  const instance = elastic({ index, type, node, esVersion, auth })
   const log = pino(instance)
 
   await client.indices.delete(
@@ -194,7 +215,7 @@ test('replaces date in index during bulk insert', { timeout }, async (t) => {
   t.plan(6)
 
   const index = 'pinotest-%{DATE}'
-  const instance = elastic({ index, type, consistency, node, 'es-version': esVersion })
+  const instance = elastic({ index, type, node, esVersion, auth })
   const log = pino(instance)
 
   await client.indices.delete(
@@ -227,9 +248,8 @@ test('replaces date in index during bulk insert', { timeout }, async (t) => {
 test('Use ecs format', { timeout }, async (t) => {
   t.plan(2)
 
-  const instance = elastic({ index, type, consistency, node, 'es-version': esVersion })
-  const ecsFormat = EcsFormat()
-  const log = pino({ ...ecsFormat }, instance)
+  const instance = elastic({ index, type, node, esVersion, auth })
+  const log = pino({ ...ecsFormat() }, instance)
 
   log.info('hello world')
 
@@ -257,7 +277,7 @@ test('dynamic index name', { timeout }, async (t) => {
     return indexNameGenerated
   }
 
-  const instance = elastic({ index, type, consistency, node, 'es-version': esVersion })
+  const instance = elastic({ index, type, node, esVersion, auth })
   const log = pino(instance)
 
   log.info('hello world')
@@ -286,7 +306,7 @@ test('dynamic index name during bulk insert', { timeout }, async (t) => {
     return indexNameGenerated
   }
 
-  const instance = elastic({ index, type, consistency, node, 'es-version': esVersion })
+  const instance = elastic({ index, type, node, esVersion, auth })
   const log = pino(instance)
 
   log.info('hello world')
@@ -316,7 +336,7 @@ test('handle datastreams during bulk insert', { timeout }, async (t) => {
     // Arrange
     t.plan(6)
 
-    const instance = elastic({ index: streamIndex, type, consistency, node, 'es-version': esVersion, op_type: 'create' })
+    const instance = elastic({ index: streamIndex, type, node, esVersion, opType: 'create', auth })
     const log = pino(instance)
 
     // Act

@@ -3,18 +3,14 @@
 /* eslint no-prototype-builtins: 0 */
 
 const split = require('split2')
-const {
-  Client,
-  ClusterConnectionPool,
-  HttpConnection
-} = require('@elastic/elasticsearch')
+const { Client } = require('@elastic/elasticsearch')
 
 function initializeBulkHandler (opts, client, splitter) {
-  const esVersion = Number(opts['es-version']) || 7
+  const esVersion = Number(opts.esVersion || opts['es-version']) || 7
   const index = opts.index || 'pino'
   const buildIndexName = typeof index === 'function' ? index : null
   const type = esVersion >= 7 ? undefined : (opts.type || 'log')
-  const opType = esVersion >= 7 ? opts.op_type : undefined
+  const opType = esVersion >= 7 ? (opts.opType || opts.op_type) : undefined
 
   // Resurrect connection pool on destroy
   splitter.destroy = () => {
@@ -25,8 +21,8 @@ function initializeBulkHandler (opts, client, splitter) {
 
   const bulkInsert = client.helpers.bulk({
     datasource: splitter,
-    flushBytes: opts['flush-bytes'] || 1000,
-    flushInterval: opts['flush-interval'] || 30000,
+    flushBytes: opts.flushBytes || opts['flush-bytes'] || 1000,
+    flushInterval: opts.flushInterval || opts['flush-interval'] || 30000,
     refreshOnCompletion: getIndexName(),
     onDocument (doc) {
       const date = doc.time || doc['@timestamp']
@@ -63,8 +59,20 @@ function initializeBulkHandler (opts, client, splitter) {
 }
 
 function pinoElasticSearch (opts) {
+  if (opts['flush-bytes']) {
+    process.emitWarning('The "flush-bytes" option has been deprecated, use "flushBytes" instead')
+  }
+
+  if (opts['flush-interval']) {
+    process.emitWarning('The "flush-interval" option has been deprecated, use "flushInterval" instead')
+  }
+
+  if (opts['es-version']) {
+    process.emitWarning('The "es-version" option has been deprecated, use "esVersion" instead')
+  }
+
   if (opts['bulk-size']) {
-    process.emitWarning('The "bulk-size" option has been deprecated, "flush-bytes" instead')
+    process.emitWarning('The "bulk-size" option has been removed, use "flushBytes" instead')
     delete opts['bulk-size']
   }
 
@@ -111,17 +119,12 @@ function pinoElasticSearch (opts) {
     return value
   }, { autoDestroy: true })
 
+  /** @type {import('@elastic/elasticsearch').ClientOptions} */
   const clientOpts = {
     node: opts.node,
     auth: opts.auth,
     cloud: opts.cloud,
-    ssl: { rejectUnauthorized: opts.rejectUnauthorized },
-    Connection: HttpConnection,
-    ConnectionPool: ClusterConnectionPool
-  }
-
-  if (opts.tls) {
-    clientOpts.tls = opts.tls
+    ssl: { rejectUnauthorized: opts.rejectUnauthorized }
   }
 
   if (opts.caFingerprint) {
@@ -138,7 +141,7 @@ function pinoElasticSearch (opts) {
 
   const client = new Client(clientOpts)
 
-  client.diagnostic.on('resurrect', () => {
+  client.on('resurrect', () => {
     initializeBulkHandler(opts, client, splitter)
   })
 

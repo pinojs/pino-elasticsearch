@@ -57,7 +57,6 @@ const flags = minimist(process.argv.slice(2), {
     help: 'h',
     node: 'n',
     index: 'i',
-    'bulk-size': 'b',
     'flush-bytes': 'f',
     'flush-interval': 't',
     'trace-level': 'l',
@@ -72,7 +71,7 @@ const flags = minimist(process.argv.slice(2), {
   }
 })
 
-const allowedProps = ['node', 'index', 'bulk-size', 'flush-btyes', 'flush-interval', 'trace-level', 'username', 'password', 'api-key', 'cloud', 'es-version', 'rejectUnauthorized']
+const allowedProps = ['node', 'index', 'flush-bytes', 'flush-interval', 'trace-level', 'username', 'password', 'api-key', 'cloud', 'es-version', 'rejectUnauthorized']
 
 if (flags['read-config']) {
   if (flags['read-config'].match(/.*\.json$/) !== null) {
