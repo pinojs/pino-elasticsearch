@@ -58,7 +58,7 @@ function initializeBulkHandler (opts, client, splitter) {
   }
 }
 
-function pinoElasticSearch (opts) {
+function pinoElasticSearch (opts = {}) {
   if (opts['flush-bytes']) {
     process.emitWarning('The "flush-bytes" option has been deprecated, use "flushBytes" instead')
   }
@@ -119,7 +119,6 @@ function pinoElasticSearch (opts) {
     return value
   }, { autoDestroy: true })
 
-  /** @type {import('@elastic/elasticsearch').ClientOptions} */
   const clientOpts = {
     node: opts.node,
     auth: opts.auth,

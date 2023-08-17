@@ -132,7 +132,7 @@ The following table lists the events emitted by the stream handler:
 
 | Event | Callback Signature | Description |
 | ----- | ------------------ | ----------- |
-| `unknown` | `(line: string, error: string) => void` | Event received by `pino-elasticsearch` is unparseable (via `JSON.parse`) |
+| `unknown` | `(line: string, error: string) => void` | Event received by `pino-elasticsearch` is unparsable (via `JSON.parse`) |
 | `insertError` | `(error: Error & { document: Record<string, any> }) => void` | The bulk insert request to Elasticsearch failed (records dropped). |
 | `insert` | `(stats: Record<string, any>) => void` | Called when an insert was successfully performed |
 | `error` | `(error: Error) => void` | Called when the Elasticsearch client fails for some other reason |
@@ -259,7 +259,7 @@ const streamToElastic = pinoElastic({
 streamToElastic.on('error', (error) => {
   console.error('Elasticsearch client error:', error);
 })
-// Capture errors returned from Elasticsearch, "it will be called for every time a document can't be indexed".
+// Capture errors returned from Elasticsearch, "it will be called every time a document can't be indexed".
 streamToElastic.on('insertError', (error) => {
   console.error('Elasticsearch server error:', error);
 })
