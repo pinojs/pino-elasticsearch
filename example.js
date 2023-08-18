@@ -7,9 +7,8 @@ const elastic = require('./lib')({
   auth: {
     apiKey: 'someKey'
   },
-  consistency: 'one',
-  'es-version': 7,
-  'flush-bytes': 1000
+  esVersion: 7,
+  flushBytes: 1000
 })
 
 const level = 'trace'

@@ -10,13 +10,12 @@ const matchISOString = /\d{4}-[01]\d-[0-3]\dT[0-2]\d:[0-5]\d:[0-5]\d\.\d+([+-][0
 const options = {
   index: 'pinotest',
   type: 'log',
-  consistency: 'one',
   node: 'http://localhost:9200'
 }
 
 const dsOptions = {
   ...options,
-  op_type: 'create'
+  opType: 'create'
 }
 
 test('make sure date format is valid', (t) => {
@@ -30,9 +29,7 @@ test('make sure log is a valid json', (t) => {
   const Client = function (config) {
     t.equal(config.node, options.node)
   }
-  Client.prototype.diagnostic = {
-    on: () => {}
-  }
+  Client.prototype.on = () => {}
   Client.prototype.helpers = {
     async bulk (opts) {
       for await (const chunk of opts.datasource) {
@@ -55,9 +52,7 @@ test('make sure log is a valid json', (t) => {
 test('date can be a number', (t) => {
   t.plan(1)
   const Client = function (config) {}
-  Client.prototype.diagnostic = {
-    on: () => {}
-  }
+  Client.prototype.on = () => {}
 
   const threeDaysInMillis = 3 * 24 * 60 * 60 * 1000
   const time = new Date(Date.now() - threeDaysInMillis)
@@ -82,12 +77,38 @@ test('date can be a number', (t) => {
 
 test('Uses the type parameter only with ES < 7 / 1', (t) => {
   t.plan(2)
+
   const Client = function (config) {
     t.equal(config.node, options.node)
   }
-  Client.prototype.diagnostic = {
-    on: () => {}
+  Client.prototype.on = () => {}
+
+  Client.prototype.helpers = {
+    async bulk (opts) {
+      for await (const chunk of opts.datasource) {
+        const action = opts.onDocument(chunk)
+        t.equal(action.index._type, 'log')
+      }
+    }
   }
+
+  const elastic = proxyquire('../', {
+    '@elastic/elasticsearch': { Client }
+  })
+  const instance = elastic(Object.assign(options, { esVersion: 6 }))
+  const log = pino(instance)
+  const prettyLog = `some logs goes here.
+  another log...`
+  log.info(['info'], prettyLog)
+})
+
+test('Uses the type parameter only with ES < 7 / 1, even with the deprecated `es-version` option', (t) => {
+  t.plan(2)
+
+  const Client = function (config) {
+    t.equal(config.node, options.node)
+  }
+  Client.prototype.on = () => {}
 
   Client.prototype.helpers = {
     async bulk (opts) {
@@ -110,12 +131,36 @@ test('Uses the type parameter only with ES < 7 / 1', (t) => {
 
 test('Uses the type parameter only with ES < 7 / 2', (t) => {
   t.plan(2)
+
   const Client = function (config) {
     t.equal(config.node, options.node)
   }
-  Client.prototype.diagnostic = {
-    on: () => {}
+  Client.prototype.on = () => {}
+  Client.prototype.helpers = {
+    async bulk (opts) {
+      for await (const chunk of opts.datasource) {
+        const action = opts.onDocument(chunk)
+        t.equal(action.index._type, undefined)
+      }
+    }
   }
+
+  const elastic = proxyquire('../', {
+    '@elastic/elasticsearch': { Client }
+  })
+  const instance = elastic(Object.assign(options, { esVersion: 7 }))
+  const log = pino(instance)
+  const prettyLog = `some logs goes here.
+  another log...`
+  log.info(['info'], prettyLog)
+})
+
+test('Uses the type parameter only with ES < 7 / 2, even with the deprecate `es-version` option', (t) => {
+  t.plan(2)
+  const Client = function (config) {
+    t.equal(config.node, options.node)
+  }
+  Client.prototype.on = () => {}
   Client.prototype.helpers = {
     async bulk (opts) {
       for await (const chunk of opts.datasource) {
@@ -140,9 +185,7 @@ test('ecs format', (t) => {
   const Client = function (config) {
     t.equal(config.node, options.node)
   }
-  Client.prototype.diagnostic = {
-    on: () => {}
-  }
+  Client.prototype.on = () => {}
   Client.prototype.helpers = {
     async bulk (opts) {
       for await (const chunk of opts.datasource) {
@@ -183,9 +226,7 @@ test('auth and cloud parameters are properly passed to client', (t) => {
     t.equal(config.auth, opts.auth)
     t.equal(config.cloud, opts.cloud)
   }
-  Client.prototype.diagnostic = {
-    on: () => {}
-  }
+  Client.prototype.on = () => {}
   Client.prototype.helpers = {
     async bulk (opts) {}
   }
@@ -195,7 +236,7 @@ test('auth and cloud parameters are properly passed to client', (t) => {
   elastic(opts)
 })
 
-test('apikey is passed through auth param properly to client', (t) => {
+test('apiKey is passed through auth param properly to client', (t) => {
   const opts = {
     ...options,
     auth: {
@@ -208,9 +249,7 @@ test('apikey is passed through auth param properly to client', (t) => {
     t.equal(config.node, opts.node)
     t.equal(config.auth, opts.auth)
   }
-  Client.prototype.diagnostic = {
-    on: () => {}
-  }
+  Client.prototype.on = () => {}
   Client.prototype.helpers = {
     async bulk (opts) {}
   }
@@ -220,43 +259,104 @@ test('apikey is passed through auth param properly to client', (t) => {
   elastic(opts)
 })
 
-test('make sure `flush-interval` is passed to bulk request', (t) => {
-  t.plan(2)
-  const Client = function (config) {
-    t.equal(config.node, options.node)
-  }
-  Client.prototype.diagnostic = {
-    on: () => {}
-  }
+test('make sure `flushInterval` is passed to bulk request', (t) => {
+  t.plan(1)
+
+  const Client = function (config) {}
+  Client.prototype.on = () => {}
+
   Client.prototype.helpers = {
     async bulk (opts) {
       t.equal(opts.flushInterval, 12345)
-      t.end()
     }
   }
   const elastic = proxyquire('../', {
     '@elastic/elasticsearch': { Client }
   })
 
-  options['flush-interval'] = 12345
+  options.flushInterval = 12345
   const instance = elastic(options)
   const log = pino(instance)
   log.info(['info'], 'abc')
 })
 
-test('make sure `op_type` is passed to bulk onDocument request', (t) => {
+test('make sure deprecated `flush-interval` is passed to bulk request', (t) => {
+  t.plan(1)
+
+  const flushInterval = 12345
+
+  const Client = function (config) {}
+  Client.prototype.on = () => {}
+
+  Client.prototype.helpers = {
+    async bulk (opts) {
+      t.equal(opts.flushInterval, flushInterval)
+    }
+  }
+  const elastic = proxyquire('../', {
+    '@elastic/elasticsearch': { Client }
+  })
+
+  const instance = elastic({ ...options, 'flush-interval': flushInterval })
+  const log = pino(instance)
+  log.info(['info'], 'abc')
+})
+
+test('make sure `flushBytes` is passed to bulk request', (t) => {
+  t.plan(1)
+
+  const flushBytes = true
+
+  const Client = function (config) {}
+  Client.prototype.on = () => {}
+
+  Client.prototype.helpers = {
+    async bulk (opts) {
+      t.equal(opts.flushBytes, flushBytes)
+    }
+  }
+  const elastic = proxyquire('../', {
+    '@elastic/elasticsearch': { Client }
+  })
+
+  const instance = elastic({ ...options, flushBytes })
+  const log = pino(instance)
+  log.info(['info'], 'abc')
+})
+
+test('make sure deprecated `flush-bytes` is passed to bulk request', (t) => {
+  t.plan(1)
+
+  const flushBytes = true
+
+  const Client = function (config) {}
+  Client.prototype.on = () => {}
+
+  Client.prototype.helpers = {
+    async bulk (opts) {
+      t.equal(opts.flushBytes, flushBytes)
+    }
+  }
+  const elastic = proxyquire('../', {
+    '@elastic/elasticsearch': { Client }
+  })
+
+  const instance = elastic({ ...options, 'flush-bytes': flushBytes })
+  const log = pino(instance)
+  log.info(['info'], 'abc')
+})
+
+test('make sure `opType` is passed to bulk onDocument request', (t) => {
   t.plan(2)
 
   const Client = function (config) {}
-  Client.prototype.diagnostic = {
-    on: () => {}
-  }
+  Client.prototype.on = () => {}
 
   Client.prototype.helpers = {
     async bulk (opts) {
       const result = opts.onDocument({})
       t.equal(result.index._index, dsOptions.index, `_index should be correctly set to \`${dsOptions.index}\``)
-      t.equal(result.index.op_type, dsOptions.op_type, `\`op_type\` should be set to \`${dsOptions.op_type}\``)
+      t.equal(result.index.op_type, dsOptions.opType, `\`op_type\` should be set to \`${dsOptions.opType}\``)
       t.end()
     }
   }
@@ -269,16 +369,39 @@ test('make sure `op_type` is passed to bulk onDocument request', (t) => {
   log.info(['info'], 'abc')
 })
 
-test('make sure `@timestamp` is correctly set when `op_type` is `create`', (t) => {
+test('make sure deprecated `op_type` is passed to bulk onDocument request', (t) => {
+  t.plan(2)
+
+  const Client = function (config) {}
+  Client.prototype.on = () => {}
+
+  Client.prototype.helpers = {
+    async bulk (opts) {
+      const result = opts.onDocument({})
+      t.equal(result.index._index, dsOptions.index, `_index should be correctly set to \`${dsOptions.index}\``)
+      t.equal(result.index.op_type, dsOptions.opType, `\`op_type\` should be set to \`${dsOptions.opType}\``)
+      t.end()
+    }
+  }
+  const elastic = proxyquire('../', {
+    '@elastic/elasticsearch': { Client }
+  })
+
+  const { opType, ...rest } = dsOptions
+
+  const instance = elastic({ ...rest, op_type: opType })
+  const log = pino(instance)
+  log.info(['info'], 'abc')
+})
+
+test('make sure `@timestamp` is correctly set when `opType` is `create`', (t) => {
   t.plan(1)
 
   const document = {
     time: '2021-09-01T01:01:01.038Z'
   }
   const Client = function (config) {}
-  Client.prototype.diagnostic = {
-    on: () => {}
-  }
+  Client.prototype.on = () => {}
 
   Client.prototype.helpers = {
     async bulk (opts) {
@@ -299,9 +422,7 @@ test('make sure `@timestamp` is correctly set when `op_type` is `create`', (t) =
 test('resurrect client connection pool when datasource split is destroyed', (t) => {
   let isResurrected = false
   const Client = function (config) {}
-  Client.prototype.diagnostic = {
-    on: () => {}
-  }
+  Client.prototype.on = () => {}
 
   Client.prototype.helpers = {
     bulk: async function (opts) {
@@ -327,4 +448,68 @@ test('resurrect client connection pool when datasource split is destroyed', (t) 
 
   const prettyLog = 'Example of a log'
   log.info(['info'], prettyLog)
+})
+
+test('make sure deprecated `rejectUnauthorized` is passed to client constructor', (t) => {
+  t.plan(1)
+
+  const rejectUnauthorized = true
+
+  const Client = function (config) {
+    t.equal(config.ssl.rejectUnauthorized, rejectUnauthorized)
+  }
+
+  Client.prototype.on = () => {}
+  Client.prototype.helpers = { async bulk () {} }
+
+  const elastic = proxyquire('../', {
+    '@elastic/elasticsearch': { Client }
+  })
+
+  const instance = elastic({ ...options, rejectUnauthorized })
+  const log = pino(instance)
+  log.info(['info'], 'abc')
+})
+
+test('make sure `tls.rejectUnauthorized` is passed to client constructor', (t) => {
+  t.plan(1)
+
+  const tls = { rejectUnauthorized: true }
+
+  const Client = function (config) {
+    t.equal(config.ssl.rejectUnauthorized, tls.rejectUnauthorized)
+  }
+
+  Client.prototype.on = () => {}
+  Client.prototype.helpers = { async bulk () {} }
+
+  const elastic = proxyquire('../', {
+    '@elastic/elasticsearch': { Client }
+  })
+
+  const instance = elastic({ ...options, tls })
+  const log = pino(instance)
+  log.info(['info'], 'abc')
+})
+
+test('make sure `tls.rejectUnauthorized` overrides deprecated `rejectUnauthorized`', (t) => {
+  t.plan(1)
+
+  const rejectUnauthorized = true
+  const tls = { rejectUnauthorized: false }
+
+  const Client = function (config) {
+    t.equal(config.ssl.rejectUnauthorized, tls.rejectUnauthorized)
+  }
+
+  Client.prototype.on = () => {}
+  Client.prototype.helpers = { async bulk () {} }
+
+  const elastic = proxyquire('../', {
+    '@elastic/elasticsearch': { Client }
+  })
+
+  const instance = elastic({ ...options, rejectUnauthorized, tls })
+  const log = pino(instance)
+  log.info(['info'], 'abc')
 })

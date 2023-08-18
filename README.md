@@ -27,7 +27,6 @@ npm install pino-elasticsearch -g
   -t  | --type              the name of the type to use; default: log
   -f  | --flush-bytes       the number of bytes for each bulk insert; default: 1000
   -t  | --flush-interval    time that the helper will wait before flushing; default: 30000
-  -b  | --bulk-size         the number of documents for each bulk insert [DEPRECATED]
   -l  | --trace-level       trace level for the elasticsearch client, default 'error' (info, debug, trace).
       | --es-version        specify the major version number of Elasticsearch (eg: 5, 6, 7)
                             (this is needed only if you are using Elasticsearch <= 7)
@@ -50,10 +49,9 @@ const pinoElastic = require('pino-elasticsearch')
 
 const streamToElastic = pinoElastic({
   index: 'an-index',
-  consistency: 'one',
   node: 'http://localhost:9200',
-  'es-version': 7,
-  'flush-bytes': 1000
+  esVersion: 7,
+  flushBytes: 1000
 })
 
 const logger = pino({ level: 'info' }, streamToElastic)
@@ -72,10 +70,9 @@ const pinoMultiStream = require('pino-multi-stream').multistream;
 
 const streamToElastic = pinoElastic({
   index: 'an-index',
-  consistency: 'one',
   node: 'http://localhost:9200',
-  'es-version': 7,
-  'flush-bytes': 1000
+  esVersion: 7,
+  flushBytes: 1000
 });
 
 const pinoOptions = {};
@@ -100,10 +97,9 @@ const Connection = <custom Connection>
 
 const streamToElastic = pinoElastic({
   index: 'an-index',
-  consistency: 'one',
   node: 'http://localhost:9200',
-  'es-version': 7,
-  'flush-bytes': 1000,
+  esVersion: 7,
+  flushBytes: 1000,
   Connection
 })
 
@@ -124,10 +120,9 @@ const pinoElastic = require('pino-elasticsearch');
 
 const streamToElastic = pinoElastic({
   index: 'an-index',
-  consistency: 'one',
   node: 'http://localhost:9200',
-  'es-version': 7,
-  'flush-bytes': 1000
+  esVersion: 7,
+  flushBytes: 1000
 })
 
 streamToElastic.on('<event>', (error) => console.log(event));
@@ -137,7 +132,7 @@ The following table lists the events emitted by the stream handler:
 
 | Event | Callback Signature | Description |
 | ----- | ------------------ | ----------- |
-| `unknown` | `(line: string, error: string) => void` | Event received by `pino-elasticsearch` is unparseable (via `JSON.parse`) |
+| `unknown` | `(line: string, error: string) => void` | Event received by `pino-elasticsearch` is unparsable (via `JSON.parse`) |
 | `insertError` | `(error: Error & { document: Record<string, any> }) => void` | The bulk insert request to Elasticsearch failed (records dropped). |
 | `insert` | `(stats: Record<string, any>) => void` | Called when an insert was successfully performed |
 | `error` | `(error: Error) => void` | Called when the Elasticsearch client fails for some other reason |
@@ -154,10 +149,9 @@ const pinoElastic = require('pino-elasticsearch');
 
 const streamToElastic = pinoElastic({
   index: 'an-index',
-  consistency: 'one',
   node: 'http://localhost:9200',
-  'es-version': 7,
-  'flush-bytes': 1000
+  esVersion: 7,
+  flushBytes: 1000
 })
 
 streamToElastic.on(
@@ -198,10 +192,9 @@ const pinoElastic = require('pino-elasticsearch')
 
 const streamToElastic = pinoElastic({
   index: 'an-index',
-  consistency: 'one',
   node: 'http://localhost:9200',
-  'es-version': 7,
-  'flush-bytes': 1000
+  esVersion: 7,
+  flushBytes: 1000
 })
 
 const logger = pino({ level: 'info',  ...ecsFormat  }, streamToElastic)
@@ -227,7 +220,6 @@ const streamToElastic = pinoElastic({
     // the logTime is a ISO 8601 formatted string of the log line
     return `awesome-app-${logTime.substring(5, 10)}`
   },
-  consistency: 'one',
   node: 'http://localhost:9200'
 })
 // ...
@@ -237,16 +229,15 @@ The function **must** be sync, doesn't throw and return a string.
 
 #### Datastreams
 
-Indexing to datastreams requires the `op_type` to be set to `create`:
+Indexing to datastreams requires the `opType` to be set to `create`:
 ```js
 const pino = require('pino')
 const pinoElastic = require('pino-elasticsearch')
 
 const streamToElastic = pinoElastic({
   index: "type-dataset-namespace",
-  consistency: 'one',
   node: 'http://localhost:9200',
-  op_type: 'create'
+  opType: 'create'
 })
 // ...
 ```
@@ -254,27 +245,26 @@ const streamToElastic = pinoElastic({
 #### Error handling
 ```js
 const pino = require('pino')
-const ecsFormat = require('@elastic/ecs-pino-format')()
+const ecsFormat = require('@elastic/ecs-pino-format')
 const pinoElastic = require('pino-elasticsearch')
 
 const streamToElastic = pinoElastic({
   index: 'an-index',
-  consistency: 'one',
   node: 'http://localhost:9200',
-  'es-version': 7,
-  'flush-bytes': 1000
+  esVersion: 7,
+  flushBytes: 1000
 })
 
 // Capture errors like unable to connect Elasticsearch instance.
 streamToElastic.on('error', (error) => {
   console.error('Elasticsearch client error:', error);
 })
-// Capture errors returned from Elasticsearch, "it will be called for everytime a document can't be indexed".
+// Capture errors returned from Elasticsearch, "it will be called every time a document can't be indexed".
 streamToElastic.on('insertError', (error) => {
   console.error('Elasticsearch server error:', error);
 })
 
-const logger = pino({ level: 'info',  ...ecsFormat  }, streamToElastic)
+const logger = pino({ level: 'info',  ...ecsFormat()  }, streamToElastic)
 
 logger.info('hello world')
 ```
@@ -306,14 +296,13 @@ const pinoElastic = require('pino-elasticsearch')
 
 const streamToElastic = pinoElastic({
   index: 'an-index',
-  consistency: 'one',
   node: 'http://localhost:9200',
   auth: {
     username: 'user',
     password: 'pwd'
   },
-  'es-version': 7,
-  'flush-bytes': 1000
+  esVersion: 7,
+  flushBytes: 1000
 })
 ```
 
@@ -323,7 +312,6 @@ const pinoElastic = require('pino-elasticsearch')
 
 const streamToElastic = pinoElastic({
   index: 'an-index',
-  consistency: 'one',
   node: 'http://localhost:9200',
   cloud: {
     id: 'name:bG9jYWxob3N0JGFiY2QkZWZnaA=='
@@ -331,8 +319,8 @@ const streamToElastic = pinoElastic({
   auth: {
     apiKey: 'apikey123'
   },
-  'es-version': 7,
-  'flush-bytes': 1000
+  esVersion: 7,
+  flushBytes: 1000
 })
 ```
 
@@ -345,9 +333,8 @@ use pino-elasticsearch as a module is simple, use [pino-multi-stream](https://ww
 ```js
 const pinoms = require('pino-multi-stream')
 const pinoEs = require('pino-elasticsearch')({
-    host: '192.168.1.220',
-    index: 'zb',
-    port: '9200'
+    node: 'http://192.168.1.220:9200',
+    index: 'zb'
 })
 
 const logger = pinoms({
@@ -365,8 +352,6 @@ logger.warn('warn')
 logger.error('error')
 
 ```
-
-*** Notice, the `host` and `port` parameters of `pino-elasticsearch` are required ***
 
 ## Setup and Testing
 
