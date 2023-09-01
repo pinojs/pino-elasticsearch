@@ -33,6 +33,10 @@ function start (opts) {
     opts.cloud = { id: opts.cloud }
   }
 
+  if (opts.rejectUnauthorized) {
+    opts.rejectUnauthorized = opts.rejectUnauthorized !== 'false'
+  }
+
   const stream = pinoElasticSearch(opts)
 
   stream.on('unknown', (line, error) => {
@@ -45,9 +49,6 @@ function start (opts) {
     console.error('Elasticsearch server error:', error)
   })
 
-  if (opts.rejectUnauthorized) {
-    opts.rejectUnauthorized = opts.rejectUnauthorized !== 'false'
-  }
   pump(process.stdin, stream)
 }
 
