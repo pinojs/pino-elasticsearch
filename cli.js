@@ -33,6 +33,10 @@ function start (opts) {
     opts.cloud = { id: opts.cloud }
   }
 
+  if (opts.rejectUnauthorized) {
+    opts.rejectUnauthorized = opts.rejectUnauthorized !== 'false'
+  }
+
   const stream = pinoElasticSearch(opts)
 
   stream.on('unknown', (line, error) => {
@@ -87,24 +91,24 @@ function startCli (flags) {
 
 if (require.main === module) {
   startCli(minimist(process.argv.slice(2), {
-  alias: {
-    version: 'v',
-    help: 'h',
-    node: 'n',
-    index: 'i',
-    'flush-bytes': 'f',
-    'flush-interval': 't',
-    'trace-level': 'l',
-    username: 'u',
-    password: 'p',
-    'api-key': 'k',
-    cloud: 'c',
-    'read-config': 'r'
-  },
-  default: {
-    node: 'http://localhost:9200'
-  }
+    alias: {
+      version: 'v',
+      help: 'h',
+      node: 'n',
+      index: 'i',
+      'flush-bytes': 'f',
+      'flush-interval': 't',
+      'trace-level': 'l',
+      username: 'u',
+      password: 'p',
+      'api-key': 'k',
+      cloud: 'c',
+      'read-config': 'r'
+    },
+    default: {
+      node: 'http://localhost:9200'
+    }
   }))
-  }
+}
 
 module.exports = startCli
