@@ -29,7 +29,7 @@ test('make sure log is a valid json', (t) => {
   const Client = function (config) {
     t.equal(config.node, options.node)
   }
-  Client.prototype.on = () => {}
+  Client.prototype.diagnostic = { on: () => {} }
   Client.prototype.helpers = {
     async bulk (opts) {
       for await (const chunk of opts.datasource) {
@@ -52,7 +52,7 @@ test('make sure log is a valid json', (t) => {
 test('date can be a number', (t) => {
   t.plan(1)
   const Client = function (config) {}
-  Client.prototype.on = () => {}
+  Client.prototype.diagnostic = { on: () => {} }
 
   const threeDaysInMillis = 3 * 24 * 60 * 60 * 1000
   const time = new Date(Date.now() - threeDaysInMillis)
@@ -81,7 +81,7 @@ test('Uses the type parameter only with ES < 7 / 1', (t) => {
   const Client = function (config) {
     t.equal(config.node, options.node)
   }
-  Client.prototype.on = () => {}
+  Client.prototype.diagnostic = { on: () => {} }
 
   Client.prototype.helpers = {
     async bulk (opts) {
@@ -108,7 +108,7 @@ test('Uses the type parameter only with ES < 7 / 1, even with the deprecated `es
   const Client = function (config) {
     t.equal(config.node, options.node)
   }
-  Client.prototype.on = () => {}
+  Client.prototype.diagnostic = { on: () => {} }
 
   Client.prototype.helpers = {
     async bulk (opts) {
@@ -135,7 +135,7 @@ test('Uses the type parameter only with ES < 7 / 2', (t) => {
   const Client = function (config) {
     t.equal(config.node, options.node)
   }
-  Client.prototype.on = () => {}
+  Client.prototype.diagnostic = { on: () => {} }
   Client.prototype.helpers = {
     async bulk (opts) {
       for await (const chunk of opts.datasource) {
@@ -160,7 +160,7 @@ test('Uses the type parameter only with ES < 7 / 2, even with the deprecate `es-
   const Client = function (config) {
     t.equal(config.node, options.node)
   }
-  Client.prototype.on = () => {}
+  Client.prototype.diagnostic = { on: () => {} }
   Client.prototype.helpers = {
     async bulk (opts) {
       for await (const chunk of opts.datasource) {
@@ -185,7 +185,7 @@ test('ecs format', (t) => {
   const Client = function (config) {
     t.equal(config.node, options.node)
   }
-  Client.prototype.on = () => {}
+  Client.prototype.diagnostic = { on: () => {} }
   Client.prototype.helpers = {
     async bulk (opts) {
       for await (const chunk of opts.datasource) {
@@ -226,7 +226,7 @@ test('auth and cloud parameters are properly passed to client', (t) => {
     t.equal(config.auth, opts.auth)
     t.equal(config.cloud, opts.cloud)
   }
-  Client.prototype.on = () => {}
+  Client.prototype.diagnostic = { on: () => {} }
   Client.prototype.helpers = {
     async bulk (opts) {}
   }
@@ -249,7 +249,7 @@ test('apiKey is passed through auth param properly to client', (t) => {
     t.equal(config.node, opts.node)
     t.equal(config.auth, opts.auth)
   }
-  Client.prototype.on = () => {}
+  Client.prototype.diagnostic = { on: () => {} }
   Client.prototype.helpers = {
     async bulk (opts) {}
   }
@@ -263,7 +263,7 @@ test('make sure `flushInterval` is passed to bulk request', (t) => {
   t.plan(1)
 
   const Client = function (config) {}
-  Client.prototype.on = () => {}
+  Client.prototype.diagnostic = { on: () => {} }
 
   Client.prototype.helpers = {
     async bulk (opts) {
@@ -286,7 +286,7 @@ test('make sure deprecated `flush-interval` is passed to bulk request', (t) => {
   const flushInterval = 12345
 
   const Client = function (config) {}
-  Client.prototype.on = () => {}
+  Client.prototype.diagnostic = { on: () => {} }
 
   Client.prototype.helpers = {
     async bulk (opts) {
@@ -308,7 +308,7 @@ test('make sure `flushBytes` is passed to bulk request', (t) => {
   const flushBytes = true
 
   const Client = function (config) {}
-  Client.prototype.on = () => {}
+  Client.prototype.diagnostic = { on: () => {} }
 
   Client.prototype.helpers = {
     async bulk (opts) {
@@ -330,7 +330,7 @@ test('make sure deprecated `flush-bytes` is passed to bulk request', (t) => {
   const flushBytes = true
 
   const Client = function (config) {}
-  Client.prototype.on = () => {}
+  Client.prototype.diagnostic = { on: () => {} }
 
   Client.prototype.helpers = {
     async bulk (opts) {
@@ -350,7 +350,7 @@ test('make sure `opType` is passed to bulk onDocument request', (t) => {
   t.plan(2)
 
   const Client = function (config) {}
-  Client.prototype.on = () => {}
+  Client.prototype.diagnostic = { on: () => {} }
 
   Client.prototype.helpers = {
     async bulk (opts) {
@@ -373,7 +373,7 @@ test('make sure deprecated `op_type` is passed to bulk onDocument request', (t) 
   t.plan(2)
 
   const Client = function (config) {}
-  Client.prototype.on = () => {}
+  Client.prototype.diagnostic = { on: () => {} }
 
   Client.prototype.helpers = {
     async bulk (opts) {
@@ -401,7 +401,7 @@ test('make sure `@timestamp` is correctly set when `opType` is `create`', (t) =>
     time: '2021-09-01T01:01:01.038Z'
   }
   const Client = function (config) {}
-  Client.prototype.on = () => {}
+  Client.prototype.diagnostic = { on: () => {} }
 
   Client.prototype.helpers = {
     async bulk (opts) {
@@ -422,7 +422,7 @@ test('make sure `@timestamp` is correctly set when `opType` is `create`', (t) =>
 test('resurrect client connection pool when datasource split is destroyed', (t) => {
   let isResurrected = false
   const Client = function (config) {}
-  Client.prototype.on = () => {}
+  Client.prototype.diagnostic = { on: () => {} }
 
   Client.prototype.helpers = {
     bulk: async function (opts) {
@@ -459,7 +459,7 @@ test('make sure deprecated `rejectUnauthorized` is passed to client constructor'
     t.equal(config.ssl.rejectUnauthorized, rejectUnauthorized)
   }
 
-  Client.prototype.on = () => {}
+  Client.prototype.diagnostic = { on: () => {} }
   Client.prototype.helpers = { async bulk () {} }
 
   const elastic = proxyquire('../', {
@@ -480,7 +480,7 @@ test('make sure `tls.rejectUnauthorized` is passed to client constructor', (t) =
     t.equal(config.ssl.rejectUnauthorized, tls.rejectUnauthorized)
   }
 
-  Client.prototype.on = () => {}
+  Client.prototype.diagnostic = { on: () => {} }
   Client.prototype.helpers = { async bulk () {} }
 
   const elastic = proxyquire('../', {
@@ -502,7 +502,7 @@ test('make sure `tls.rejectUnauthorized` overrides deprecated `rejectUnauthorize
     t.equal(config.ssl.rejectUnauthorized, tls.rejectUnauthorized)
   }
 
-  Client.prototype.on = () => {}
+  Client.prototype.diagnostic = { on: () => {} }
   Client.prototype.helpers = { async bulk () {} }
 
   const elastic = proxyquire('../', {

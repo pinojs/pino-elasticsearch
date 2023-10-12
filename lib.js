@@ -109,7 +109,7 @@ function pinoElasticSearch (opts = {}) {
       if (typeof value === 'object' && value.hasOwnProperty('time')) {
         if (
           (typeof value.time === 'string' && value.time.length) ||
-          (typeof value.time === 'number' && value.time >= 0)
+            (typeof value.time === 'number' && value.time >= 0)
         ) {
           return new Date(value.time).toISOString()
         }
@@ -140,7 +140,7 @@ function pinoElasticSearch (opts = {}) {
 
   const client = new Client(clientOpts)
 
-  client.on('resurrect', () => {
+  client.diagnostic.on('resurrect', () => {
     initializeBulkHandler(opts, client, splitter)
   })
 
