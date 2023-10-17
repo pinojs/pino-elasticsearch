@@ -82,7 +82,7 @@ test('CLI: if arg.read-config is set, should read the config file and passed the
     './lib.js': (opts) => {
       t.same(opts, {
         index: 'custom-index',
-        node: 'https://localhost:9200',
+        node: 'https://127.0.0.1:9200',
         rejectUnauthorized: false,
         auth: {
           username: 'elastic',

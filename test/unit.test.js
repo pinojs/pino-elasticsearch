@@ -10,7 +10,7 @@ const matchISOString = /\d{4}-[01]\d-[0-3]\dT[0-2]\d:[0-5]\d:[0-5]\d\.\d+([+-][0
 const options = {
   index: 'pinotest',
   type: 'log',
-  node: 'http://localhost:9200'
+  node: 'http://127.0.0.1:9200'
 }
 
 const dsOptions = {
@@ -102,7 +102,7 @@ test('Uses the type parameter only with ES < 7 / 1', (t) => {
   log.info(['info'], prettyLog)
 })
 
-test('Uses the type parameter only with ES < 7 / 1, even with the deprecated `es-version` option', (t) => {
+test('Uses the type parameter only with ES < 7 / 1, even with the deprecated `esVersion` option', (t) => {
   t.plan(2)
 
   const Client = function (config) {
@@ -122,7 +122,7 @@ test('Uses the type parameter only with ES < 7 / 1, even with the deprecated `es
   const elastic = proxyquire('../', {
     '@elastic/elasticsearch': { Client }
   })
-  const instance = elastic(Object.assign(options, { 'es-version': 6 }))
+  const instance = elastic(Object.assign(options, { esVersion: 6 }))
   const log = pino(instance)
   const prettyLog = `some logs goes here.
   another log...`
@@ -155,7 +155,7 @@ test('Uses the type parameter only with ES < 7 / 2', (t) => {
   log.info(['info'], prettyLog)
 })
 
-test('Uses the type parameter only with ES < 7 / 2, even with the deprecate `es-version` option', (t) => {
+test('Uses the type parameter only with ES < 7 / 2, even with the deprecate `esVersion` option', (t) => {
   t.plan(2)
   const Client = function (config) {
     t.equal(config.node, options.node)
@@ -173,7 +173,7 @@ test('Uses the type parameter only with ES < 7 / 2, even with the deprecate `es-
   const elastic = proxyquire('../', {
     '@elastic/elasticsearch': { Client }
   })
-  const instance = elastic(Object.assign(options, { 'es-version': 7 }))
+  const instance = elastic(Object.assign(options, { esVersion: 7 }))
   const log = pino(instance)
   const prettyLog = `some logs goes here.
   another log...`
@@ -280,7 +280,7 @@ test('make sure `flushInterval` is passed to bulk request', (t) => {
   log.info(['info'], 'abc')
 })
 
-test('make sure deprecated `flush-interval` is passed to bulk request', (t) => {
+test('make sure deprecated `flushInterval` is passed to bulk request', (t) => {
   t.plan(1)
 
   const flushInterval = 12345
@@ -297,7 +297,7 @@ test('make sure deprecated `flush-interval` is passed to bulk request', (t) => {
     '@elastic/elasticsearch': { Client }
   })
 
-  const instance = elastic({ ...options, 'flush-interval': flushInterval })
+  const instance = elastic({ ...options, flushInterval })
   const log = pino(instance)
   log.info(['info'], 'abc')
 })

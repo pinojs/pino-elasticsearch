@@ -10,7 +10,7 @@ const ecsFormat = require('@elastic/ecs-pino-format')
 const index = 'pinotest'
 const streamIndex = 'logs-pino-test'
 const type = 'log'
-const node = 'http://localhost:9200'
+const node = 'http://127.0.0.1:9200'
 const timeout = 5000
 const auth = {
   apiKey: process.env.ELASTICSEARCH_API_KEY,
