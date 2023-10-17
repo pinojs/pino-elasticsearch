@@ -48,7 +48,7 @@ export type Options = Pick<ClientOptions, 'node' | 'auth' | 'cloud' | 'caFingerp
   /** @deprecated use `tls.rejectUnauthorized` instead */
   rejectUnauthorized?: boolean
 
-  tls?: ClientOptions['ssl'];
+  tls?: ClientOptions['tls'];
 }
 
 export type Index = string | `${string | ''}%{DATE}${string | ''}` | ((logTime: string) => string)

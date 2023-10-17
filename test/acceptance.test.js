@@ -56,7 +56,7 @@ beforeEach(async () => {
     await esWaitCluster()
   }
 
-  const { body: { version } } = await client.info()
+  const { version } = await client.info()
   esVersion = Number(version.number.split('.')[0])
   esMinor = Number(version.number.split('.')[1])
   await client.indices.delete({ index }, { ignore: [404] })
