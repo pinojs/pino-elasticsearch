@@ -456,7 +456,7 @@ test('make sure deprecated `rejectUnauthorized` is passed to client constructor'
   const rejectUnauthorized = true
 
   const Client = function (config) {
-    t.equal(config.ssl.rejectUnauthorized, rejectUnauthorized)
+    t.equal(config.tls.rejectUnauthorized, rejectUnauthorized)
   }
 
   Client.prototype.diagnostic = { on: () => {} }
@@ -477,7 +477,7 @@ test('make sure `tls.rejectUnauthorized` is passed to client constructor', (t) =
   const tls = { rejectUnauthorized: true }
 
   const Client = function (config) {
-    t.equal(config.ssl.rejectUnauthorized, tls.rejectUnauthorized)
+    t.equal(config.tls.rejectUnauthorized, tls.rejectUnauthorized)
   }
 
   Client.prototype.diagnostic = { on: () => {} }
@@ -499,7 +499,7 @@ test('make sure `tls.rejectUnauthorized` overrides deprecated `rejectUnauthorize
   const tls = { rejectUnauthorized: false }
 
   const Client = function (config) {
-    t.equal(config.ssl.rejectUnauthorized, tls.rejectUnauthorized)
+    t.equal(config.tls.rejectUnauthorized, tls.rejectUnauthorized)
   }
 
   Client.prototype.diagnostic = { on: () => {} }
