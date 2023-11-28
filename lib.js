@@ -123,7 +123,7 @@ function pinoElasticSearch (opts = {}) {
     node: opts.node,
     auth: opts.auth,
     cloud: opts.cloud,
-    ssl: { rejectUnauthorized: opts.rejectUnauthorized, ...opts.tls }
+    tls: { rejectUnauthorized: opts.rejectUnauthorized, ...opts.tls }
   }
 
   if (opts.caFingerprint) {
