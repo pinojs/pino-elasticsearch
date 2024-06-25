@@ -62,28 +62,31 @@ logger.info('hello world')
 
 ### Using multiple streams (output to Console and Elasticsearch)
 
-If you want to output to multiple streams (transports and console)), the simplest way is to use the `pino-multi-stream` library and register a stream per output.
+If you want to output to multiple streams (transports and console), you can either use [`pino.transport`](https://getpino.io/#/docs/transports) or [`pino.multistream`](https://getpino.io/#/docs/api?id=pino-multistream). Transport is recommended and can be used like:
 
 ```js
-const pinoElastic = require('pino-elasticsearch');
-const pinoMultiStream = require('pino-multi-stream').multistream;
-
-const streamToElastic = pinoElastic({
-  index: 'an-index',
-  node: 'http://localhost:9200',
-  esVersion: 7,
-  flushBytes: 1000
-});
+const pino = require('pino');
 
 const pinoOptions = {};
 
-return pino(pinoOptions, pinoMultiStream([
-  { stream: process.stdout },
-  { stream: streamToElastic },
-]));
+return pino(pinoOptions, pino.transport({
+  targets: [
+    {
+      target: 'pino/file', // This will log to stdout
+    }, {
+      target: 'pino-elasticsearch',
+      options: {
+        index: 'an-index',
+        node: 'http://localhost:9200',
+        esVersion: 7,
+        flushBytes: 1000
+      }
+    }
+  ]
+}));
 ```
 
-You can learn more about `pino-multi-stream` here: https://github.com/pinojs/pino-multi-stream.
+Please note: The `options` must be serializable. For example if you use a function as `index`, you will get an error. Find an example at [pino-pretty](https://github.com/pinojs/pino-pretty?tab=readme-ov-file#handling-non-serializable-options) how you can use it.
 
 ### Custom Connection
 
@@ -325,33 +328,6 @@ const streamToElastic = pinoElastic({
 ```
 
 For a full list of authentication options when using elastic, check out the [authentication configuration docs](https://www.elastic.co/guide/en/elasticsearch/client/javascript-api/current/auth-reference.html)
-
-## Use as a module
-
-use pino-elasticsearch as a module is simple, use [pino-multi-stream](https://www.npmjs.com/package/pino-multi-stream) to send log to multi transport, for example:
-
-```js
-const pinoms = require('pino-multi-stream')
-const pinoEs = require('pino-elasticsearch')({
-    node: 'http://192.168.1.220:9200',
-    index: 'zb'
-})
-
-const logger = pinoms({
-    streams: [
-      {level: 'error', stream: process.stderr}, // an "error" level destination stream
-      {level: 'info', stream: process.stdout}, // an "info" level destination stream
-      {stream: pinoEs}
-    ]
-  })
-
-
-logger.info({'msg': {'info': 'info'}})
-logger.debug('debug')
-logger.warn('warn')
-logger.error('error')
-
-```
 
 ## Setup and Testing
 
