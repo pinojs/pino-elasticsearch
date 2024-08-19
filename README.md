@@ -186,7 +186,7 @@ streamToElastic.on(
 
 ### ECS support
 
-If you want to use [Elastic Common Schema](https://www.elastic.co/guide/en/ecs/current/index.html), you should install [`@elastic/ecs-pino-format`](https://github.com/elastic/ecs-logging-js/tree/master/loggers/pino), as the `ecs` option of this module has been removed.
+If you want to use [Elastic Common Schema](https://www.elastic.co/guide/en/ecs/current/index.html), you should install [`@elastic/ecs-pino-format`](https://github.com/elastic/ecs-logging-nodejs/blob/main/packages/ecs-pino-format), as the `ecs` option of this module has been removed.
 
 ```js
 const pino = require('pino')
