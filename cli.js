@@ -64,7 +64,8 @@ function startCli (flags) {
     'api-key',
     'cloud',
     'es-version',
-    'rejectUnauthorized'
+    'rejectUnauthorized',
+    'opType'
   ]
 
   if (flags['read-config']) {

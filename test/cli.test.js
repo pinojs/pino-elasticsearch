@@ -105,3 +105,23 @@ test('CLI: if arg.read-config is set, should read the config file and passed the
     'read-config': 'test/exampleConfig.js'
   })
 })
+
+test('CLI: arg opType should be passed to client constructor', async (t) => {
+  const cli = proxyquire('../cli.js', {
+    pump: () => { },
+    './lib.js': (opts) => {
+      t.same(opts, {
+        node: 'https://custom-node-url:9999',
+        opType: 'create'
+      })
+      return {
+        on: () => { }
+      }
+    }
+  })
+
+  cli({
+    node: 'https://custom-node-url:9999',
+    opType: 'create'
+  })
+})
