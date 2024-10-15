@@ -1,6 +1,6 @@
 {
   "name": "pino-elasticsearch",
-  "version": "8.0.0",
+  "version": "8.1.0",
   "description": "Load pino logs into ElasticSearch",
   "main": "./lib.js",
   "types": "./lib.d.ts",
