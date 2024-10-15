@@ -38,7 +38,8 @@ npm install pino-elasticsearch -g
   -c  | --cloud             Id of the elastic cloud node to connect to
   -r  | --read-config       the name of config file
   --rejectUnauthorized      Reject any connection which is not authorized with the list of supplied CAs; default: true
-
+  --opType                  the op_type to use (create, index)
+                            "create" is required when using datastreams
 ```
 
 ### Usage as module
