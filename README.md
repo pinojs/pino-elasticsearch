@@ -201,7 +201,7 @@ const streamToElastic = pinoElastic({
   flushBytes: 1000
 })
 
-const logger = pino({ level: 'info',  ...ecsFormat  }, streamToElastic)
+const logger = pino({ level: 'info',  ...ecsFormat()  }, streamToElastic)
 
 logger.info('hello world')
 // ...
