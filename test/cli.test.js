@@ -1,12 +1,14 @@
 'use strict'
-const test = require('tap').test
+
+const test = require('node:test')
 const proxyquire = require('proxyquire')
 
 test('CLI: arg node should passed to client constructor', async (t) => {
+  t.plan(1)
   const cli = proxyquire('../cli.js', {
     pump: () => { },
     './lib.js': (opts) => {
-      t.same(opts, { node: 'https://custom-node-url:9999' })
+      t.assert.deepEqual(opts, { node: 'https://custom-node-url:9999' })
       return {
         on: () => { }
       }
@@ -17,10 +19,11 @@ test('CLI: arg node should passed to client constructor', async (t) => {
 })
 
 test('CLI: arg rejectUnauthorized, if set to \'true\', should passed as true (bool) to client constructor', async (t) => {
+  t.plan(1)
   const cli = proxyquire('../cli.js', {
     pump: () => { },
     './lib.js': (opts) => {
-      t.same(opts, {
+      t.assert.deepEqual(opts, {
         node: 'https://custom-node-url:9999',
         rejectUnauthorized: true
       })
@@ -37,10 +40,11 @@ test('CLI: arg rejectUnauthorized, if set to \'true\', should passed as true (bo
 })
 
 test('CLI: arg rejectUnauthorized, if set to \'false\', should passed as false (bool) to client constructor', async (t) => {
+  t.plan(1)
   const cli = proxyquire('../cli.js', {
     pump: () => { },
     './lib.js': (opts) => {
-      t.same(opts, {
+      t.assert.deepEqual(opts, {
         node: 'https://custom-node-url:9999',
         rejectUnauthorized: false
       })
@@ -57,10 +61,11 @@ test('CLI: arg rejectUnauthorized, if set to \'false\', should passed as false (
 })
 
 test('CLI: arg rejectUnauthorized, if set to anything instead of true or false, should passed as true (bool) to client constructor', async (t) => {
+  t.plan(1)
   const cli = proxyquire('../cli.js', {
     pump: () => { },
     './lib.js': (opts) => {
-      t.same(opts, {
+      t.assert.deepEqual(opts, {
         node: 'https://custom-node-url:9999',
         rejectUnauthorized: true
       })
@@ -77,10 +82,11 @@ test('CLI: arg rejectUnauthorized, if set to anything instead of true or false, 
 })
 
 test('CLI: if arg.read-config is set, should read the config file and passed the value (only allowed values)', async (t) => {
+  t.plan(1)
   const cli = proxyquire('../cli.js', {
     pump: () => { },
     './lib.js': (opts) => {
-      t.same(opts, {
+      t.assert.deepEqual(opts, {
         index: 'custom-index',
         node: 'https://127.0.0.1:9200',
         rejectUnauthorized: false,
@@ -107,10 +113,11 @@ test('CLI: if arg.read-config is set, should read the config file and passed the
 })
 
 test('CLI: arg opType should be passed to client constructor', async (t) => {
+  t.plan(1)
   const cli = proxyquire('../cli.js', {
     pump: () => { },
     './lib.js': (opts) => {
-      t.same(opts, {
+      t.assert.deepEqual(opts, {
         node: 'https://custom-node-url:9999',
         opType: 'create'
       })

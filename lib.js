@@ -3,7 +3,7 @@
 /* eslint no-prototype-builtins: 0 */
 
 const split = require('split2')
-const { Client } = require('@elastic/elasticsearch')
+const { Client: DefaultClient } = require('@elastic/elasticsearch')
 
 function initializeBulkHandler (opts, client, splitter) {
   const esVersion = Number(opts.esVersion || opts['es-version']) || 7
@@ -58,7 +58,7 @@ function initializeBulkHandler (opts, client, splitter) {
   }
 }
 
-function pinoElasticSearch (opts = {}) {
+function pinoElasticSearch (opts = {}, { Client = DefaultClient } = {}) {
   if (opts['flush-bytes']) {
     process.emitWarning('The "flush-bytes" option has been deprecated, use "flushBytes" instead')
   }
