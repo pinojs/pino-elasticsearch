@@ -1,7 +1,7 @@
 # pino-elasticsearch&nbsp;&nbsp;[![Build Status](https://github.com/pinojs/pino-elasticsearch/workflows/CI/badge.svg)](https://github.com/pinojs/pino-elasticsearch/actions)&nbsp;[![Coverage Status](https://coveralls.io/repos/github/pinojs/pino-elasticsearch/badge.svg?branch=master)](https://coveralls.io/github/pinojs/pino-elasticsearch?branch=master)
 
 Load [pino](https://github.com/pinojs/pino) logs into
-[Elasticsearch](https://www.elastic.co/products/elasticsearch).
+[Elasticsearch](https://www.elastic.co/elasticsearch).
 
 ## Install
 
@@ -91,7 +91,7 @@ Please note: The `options` must be serializable. For example if you use a functi
 
 ### Custom Connection
 
-If you want to use a custom Connection class for the Elasticsearch client, you can pass it as an option when using as a module. See the Elasticsearch client docs for [Connection](https://www.elastic.co/guide/en/elasticsearch/client/javascript-api/master/advanced-config.html#_connection).
+If you want to use a custom Connection class for the Elasticsearch client, you can pass it as an option when using as a module. See the Elasticsearch client docs for [Connection](https://www.elastic.co/docs/reference/elasticsearch/clients/javascript/advanced-config#_connection).
 
 ```js
 const pino = require('pino')
@@ -187,7 +187,7 @@ streamToElastic.on(
 
 ### ECS support
 
-If you want to use [Elastic Common Schema](https://www.elastic.co/guide/en/ecs/current/index.html), you should install [`@elastic/ecs-pino-format`](https://github.com/elastic/ecs-logging-nodejs/blob/main/packages/ecs-pino-format), as the `ecs` option of this module has been removed.
+If you want to use [Elastic Common Schema](https://www.elastic.co/docs/reference/ecs), you should install [`@elastic/ecs-pino-format`](https://github.com/elastic/ecs-logging-nodejs/blob/main/packages/ecs-pino-format), as the `ecs` option of this module has been removed.
 
 ```js
 const pino = require('pino')
@@ -207,7 +207,7 @@ logger.info('hello world')
 // ...
 ```
 
-You can then use [Kibana](https://www.elastic.co/products/kibana) to
+You can then use [Kibana](https://www.elastic.co/kibana) to
 browse and visualize your logs.  
 **Note:** This transport works only with Elasticsearch version ≥ 5.
 
@@ -280,10 +280,10 @@ cat log | pino-elasticsearch --node https://user:pwd@localhost:9200
 ```
 
 Alternatively you can supply a combination of `username` and `password` OR `api-key`:
-```
+```sh
 cat log | pino-elasticsearch --node https://localhost:9200 -u user -p pwd
 ```
-```
+```sh
 cat log | pino-elasticsearch --node https://localhost:9200 --api-key=base64EncodedKey
 ```
 
@@ -292,7 +292,8 @@ Elastic cloud option `cloud` is also supported:
 cat log | pino-elasticsearch --cloud=name:bG9jYWxob3N0JGFiY2QkZWZnaA== --api-key=base64EncodedKey
 ```
 
-Note: When using the cli, if you pass username/password AND an apiKey the apiKey will take precedence over the username/password combination.
+> [!NOTE]
+> When using the cli, if you pass username/password AND an apiKey the apiKey will take precedence over the username/password combination.
 
 You can also include the `auth` field in your configuration like so:
 ```js
@@ -328,14 +329,14 @@ const streamToElastic = pinoElastic({
 })
 ```
 
-For a full list of authentication options when using elastic, check out the [authentication configuration docs](https://www.elastic.co/guide/en/elasticsearch/client/javascript-api/current/auth-reference.html)
+For a full list of authentication options when using elastic, check out the [authentication configuration docs](https://www.elastic.co/docs/reference/elasticsearch/clients/javascript/connecting#authentication)
 
 ## Setup and Testing
 
 Setting up pino-elasticsearch is easy, and you can use the bundled
 `docker-compose.yml` file to bring up both
-[Elasticsearch](https://www.elastic.co/products/elasticsearch) and
-[Kibana](https://www.elastic.co/products/kibana).
+[Elasticsearch](https://www.elastic.co/elasticsearch) and
+[Kibana](https://www.elastic.co/kibana).
 
 You will need [docker](https://www.docker.com/) and
 [docker-compose](https://docs.docker.com/compose/), then in this project
@@ -347,7 +348,7 @@ installed globally.
 
 ## Acknowledgements
 
-This project was kindly sponsored by [nearForm](http://nearform.com).
+This project was kindly sponsored by [nearForm](https://nearform.com/).
 
 ## License
 

@@ -3,7 +3,7 @@ import type { ClientOptions } from '@elastic/elasticsearch'
 
 export default pinoElasticsearch
 
-declare function pinoElasticsearch(options?: Options): DestinationStream
+declare function pinoElasticsearch (options?: Options): DestinationStream
 
 export type DestinationStream = Transform & {
   /**

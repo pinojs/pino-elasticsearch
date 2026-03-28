@@ -1,10 +1,10 @@
-import { expectType, expectDeprecated, expectNotDeprecated, expectDocCommentIncludes } from 'tsd'
-import pinoElasticSearch, { DestinationStream, Options } from '../';
+import { expectType, expectDeprecated, expectNotDeprecated } from 'tsd'
+import pinoElasticSearch, { DestinationStream, Options } from '../'
 
-const options = {} as Options;
+const options = {} as Options
 
 expectType<DestinationStream>(pinoElasticSearch())
-expectType<DestinationStream>(pinoElasticSearch(options));
+expectType<DestinationStream>(pinoElasticSearch(options))
 
 expectDeprecated(options['flush-bytes'])
 expectNotDeprecated(options.flushBytes)

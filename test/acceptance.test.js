@@ -1,11 +1,11 @@
 'use strict'
 
-const { once } = require('events')
+const test = require('node:test')
+const { once } = require('node:events')
 const { pino } = require('pino')
-const elastic = require('../')
-const { teardown, beforeEach, test } = require('tap')
 const { Client } = require('@elastic/elasticsearch')
 const ecsFormat = require('@elastic/ecs-pino-format')
+const elastic = require('../')
 
 const index = 'pinotest'
 const streamIndex = 'logs-pino-test'
@@ -41,8 +41,8 @@ async function esWaitCluster () {
   }
 }
 
-teardown(() => {
-  client.close()
+test.after(async () => {
+  await client.close()
 })
 
 let esVersion = 7
@@ -51,14 +51,16 @@ let esMinor = 15
 const supportsDatastreams =
   () => esVersion > 7 || (esVersion === 7 && esMinor >= 9)
 
-beforeEach(async () => {
+test.beforeEach(async () => {
   if (!await esIsRunning()) {
     await esWaitCluster()
   }
 
   const { version } = await client.info()
+
   esVersion = Number(version.number.split('.')[0])
   esMinor = Number(version.number.split('.')[1])
+
   await client.indices.delete({ index }, { ignore: [404] })
   await client.indices.create({ index })
 
@@ -79,7 +81,9 @@ test('store a log line', { timeout }, async (t) => {
   setImmediate(() => instance.end())
 
   const [stats] = await once(instance, 'insert')
-  t.equal(stats.total, 1)
+
+  t.assert.equal(stats.total, 1)
+
   const documents = await client.helpers.search({
     index,
     type: esVersion >= 7 ? undefined : type,
@@ -87,7 +91,8 @@ test('store a log line', { timeout }, async (t) => {
       query: { match_all: {} }
     }
   })
-  t.equal(documents[0].msg, 'hello world')
+
+  t.assert.equal(documents[0].msg, 'hello world')
 })
 
 test('Ignores a boolean line even though it is JSON-parsable', { timeout }, (t) => {
@@ -96,8 +101,8 @@ test('Ignores a boolean line even though it is JSON-parsable', { timeout }, (t) 
   const instance = elastic({ index, type, node, auth })
 
   instance.on('unknown', (obj, body) => {
-    t.equal(obj, 'true', 'Object is parsed')
-    t.equal(body, 'Boolean value ignored', 'Message is emitted')
+    t.assert.equal(obj, 'true', 'Object is parsed')
+    t.assert.equal(body, 'Boolean value ignored', 'Message is emitted')
   })
 
   instance.write('true\n')
@@ -109,8 +114,8 @@ test('Ignores "null" being parsed as json', { timeout }, (t) => {
   const instance = elastic({ index, type, node, auth })
 
   instance.on('unknown', (obj, body) => {
-    t.equal(obj, 'null', 'Object is parsed')
-    t.equal(body, 'Null value ignored', 'Message is emitted')
+    t.assert.equal(obj, 'null', 'Object is parsed')
+    t.assert.equal(body, 'Null value ignored', 'Message is emitted')
   })
 
   instance.write('null\n')
@@ -122,7 +127,7 @@ test('Can process number being parsed as json', { timeout }, (t) => {
   const instance = elastic({ index, type, node, auth })
 
   instance.on('unknown', (obj, body) => {
-    t.error(obj, body)
+    t.assert.fail(obj, body)
   })
 
   instance.write('12\n')
@@ -145,7 +150,9 @@ test('store an deeply nested log line', { timeout }, async (t) => {
   setImmediate(() => instance.end())
 
   const [stats] = await once(instance, 'insert')
-  t.equal(stats.total, 1)
+
+  t.assert.equal(stats.total, 1)
+
   const documents = await client.helpers.search({
     index,
     type: esVersion >= 7 ? undefined : type,
@@ -153,7 +160,8 @@ test('store an deeply nested log line', { timeout }, async (t) => {
       query: { match_all: {} }
     }
   })
-  t.equal(documents[0].deeply.nested.hello, 'world', 'obj gets linearized')
+
+  t.assert.equal(documents[0].deeply.nested.hello, 'world', 'obj gets linearized')
 })
 
 test('store lines in bulk', { timeout }, async (t) => {
@@ -171,7 +179,9 @@ test('store lines in bulk', { timeout }, async (t) => {
   setImmediate(() => instance.end())
 
   const [stats] = await once(instance, 'insert')
-  t.equal(stats.total, 5)
+
+  t.assert.equal(stats.total, 5)
+
   const documents = await client.helpers.search({
     index,
     type: esVersion >= 7 ? undefined : type,
@@ -179,13 +189,15 @@ test('store lines in bulk', { timeout }, async (t) => {
       query: { match_all: {} }
     }
   })
+
   for (const doc of documents) {
-    t.equal(doc.msg, 'hello world')
+    t.assert.equal(doc.msg, 'hello world')
   }
 })
 
 test('replaces date in index', { timeout }, async (t) => {
   t.plan(2)
+
   const index = 'pinotest-%{DATE}'
 
   const instance = elastic({ index, type, node, esVersion, auth })
@@ -200,7 +212,9 @@ test('replaces date in index', { timeout }, async (t) => {
   setImmediate(() => instance.end())
 
   const [stats] = await once(instance, 'insert')
-  t.equal(stats.total, 1)
+
+  t.assert.equal(stats.total, 1)
+
   const documents = await client.helpers.search({
     index: index.replace('%{DATE}', new Date().toISOString().substring(0, 10)),
     type: esVersion >= 7 ? undefined : type,
@@ -208,7 +222,8 @@ test('replaces date in index', { timeout }, async (t) => {
       query: { match_all: {} }
     }
   })
-  t.equal(documents[0].msg, 'hello world')
+
+  t.assert.equal(documents[0].msg, 'hello world')
 })
 
 test('replaces date in index during bulk insert', { timeout }, async (t) => {
@@ -232,7 +247,9 @@ test('replaces date in index during bulk insert', { timeout }, async (t) => {
   setImmediate(() => instance.end())
 
   const [stats] = await once(instance, 'insert')
-  t.equal(stats.total, 5)
+
+  t.assert.equal(stats.total, 5)
+
   const documents = await client.helpers.search({
     index: index.replace('%{DATE}', new Date().toISOString().substring(0, 10)),
     type: esVersion >= 7 ? undefined : type,
@@ -240,8 +257,9 @@ test('replaces date in index during bulk insert', { timeout }, async (t) => {
       query: { match_all: {} }
     }
   })
+
   for (const doc of documents) {
-    t.equal(doc.msg, 'hello world')
+    t.assert.equal(doc.msg, 'hello world')
   }
 })
 
@@ -256,7 +274,9 @@ test('Use ecs format', { timeout }, async (t) => {
   setImmediate(() => instance.end())
 
   const [stats] = await once(instance, 'insert')
-  t.equal(stats.total, 1)
+
+  t.assert.equal(stats.total, 1)
+
   const documents = await client.helpers.search({
     index,
     type: esVersion >= 7 ? undefined : type,
@@ -264,7 +284,8 @@ test('Use ecs format', { timeout }, async (t) => {
       query: { match_all: {} }
     }
   })
-  t.type(documents[0]['@timestamp'], 'string')
+
+  t.assert.equal(typeof documents[0]['@timestamp'], 'string')
 })
 
 test('dynamic index name', { timeout }, async (t) => {
@@ -272,7 +293,7 @@ test('dynamic index name', { timeout }, async (t) => {
 
   let indexNameGenerated
   const index = function (time) {
-    t.match(time, new Date().toISOString().substring(0, 10))
+    t.assert.equal(time.startsWith(new Date().toISOString().substring(0, 10)), true)
     indexNameGenerated = `dynamic-index-${process.pid}`
     return indexNameGenerated
   }
@@ -285,7 +306,7 @@ test('dynamic index name', { timeout }, async (t) => {
   setImmediate(() => instance.end())
 
   const [stats] = await once(instance, 'insert')
-  t.equal(stats.total, 1)
+  t.assert.equal(stats.total, 1)
   const documents = await client.helpers.search({
     index: indexNameGenerated,
     type: esVersion >= 7 ? undefined : type,
@@ -293,7 +314,7 @@ test('dynamic index name', { timeout }, async (t) => {
       query: { match_all: {} }
     }
   })
-  t.equal(documents[0].msg, 'hello world')
+  t.assert.equal(documents[0].msg, 'hello world')
 })
 
 test('dynamic index name during bulk insert', { timeout }, async (t) => {
@@ -301,7 +322,7 @@ test('dynamic index name during bulk insert', { timeout }, async (t) => {
 
   let indexNameGenerated
   const index = function (time) {
-    t.match(time, new Date().toISOString().substring(0, 10))
+    t.assert.equal(time.startsWith(new Date().toISOString().substring(0, 10)), true)
     indexNameGenerated = `dynamic-index-${process.pid + 1}`
     return indexNameGenerated
   }
@@ -318,7 +339,9 @@ test('dynamic index name during bulk insert', { timeout }, async (t) => {
   setImmediate(() => instance.end())
 
   const [stats] = await once(instance, 'insert')
-  t.equal(stats.total, 5)
+
+  t.assert.equal(stats.total, 5)
+
   const documents = await client.helpers.search({
     index: indexNameGenerated,
     type: esVersion >= 7 ? undefined : type,
@@ -326,20 +349,19 @@ test('dynamic index name during bulk insert', { timeout }, async (t) => {
       query: { match_all: {} }
     }
   })
+
   for (const doc of documents) {
-    t.equal(doc.msg, 'hello world')
+    t.assert.equal(doc.msg, 'hello world')
   }
 })
 
 test('handle datastreams during bulk insert', { timeout }, async (t) => {
   if (supportsDatastreams()) {
-    // Arrange
     t.plan(6)
 
     const instance = elastic({ index: streamIndex, type, node, esVersion, opType: 'create', auth })
     const log = pino(instance)
 
-    // Act
     const logEntries = [
       { time: '2021-09-01T01:01:01.732Z' },
       { time: '2021-09-01T01:01:02.400Z' },
@@ -352,9 +374,9 @@ test('handle datastreams during bulk insert', { timeout }, async (t) => {
 
     setImmediate(() => instance.end())
 
-    // Assert
     const [stats] = await once(instance, 'insert')
-    t.equal(stats.successful, 5)
+
+    t.assert.equal(stats.successful, 5)
 
     const documents = await client.helpers.search({
       index: streamIndex,
@@ -365,10 +387,9 @@ test('handle datastreams during bulk insert', { timeout }, async (t) => {
     })
 
     for (let i = 0; i < documents.length; i++) {
-      t.equal(documents[i]['@timestamp'], logEntries[i].time)
+      t.assert.equal(documents[i]['@timestamp'], logEntries[i].time)
     }
   } else {
-    t.comment('The current elasticsearch version does not support datastreams yet!')
+    t.diagnostic('The current elasticsearch version does not support datastreams yet!')
   }
-  t.end()
 })
