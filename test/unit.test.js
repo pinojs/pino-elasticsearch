@@ -1,5 +1,6 @@
 'use strict'
 
+const { once } = require('node:events')
 const { test } = require('node:test')
 const pino = require('pino')
 const EcsFormat = require('@elastic/ecs-pino-format')
@@ -237,6 +238,44 @@ test('ecs format', (t, done) => {
   log.info(['info'], prettyLog)
 
   setImmediate(() => instance.end())
+})
+
+test('invalid timestamps do not stop bulk processing', async (t) => {
+  const documents = [
+    { '@timestamp': { invalid: true }, message: 'invalid timestamp' },
+    { '@timestamp': 0, message: 'epoch timestamp' },
+    { '@timestamp': '2024-01-02T03:04:05.000Z', message: 'valid timestamp' },
+    { '@timestamp': '2024-02-03T04:05:06.000Z', message: 'CRITICAL subsequent log' }
+  ]
+  const indexed = []
+  const Client = function (config) {}
+
+  Client.prototype.diagnostic = { on: () => {} }
+  Client.prototype.connectionPool = { resurrect: () => {} }
+  Client.prototype.helpers = {
+    async bulk (opts) {
+      for await (const document of opts.datasource) {
+        indexed.push({
+          index: opts.onDocument(document).index._index,
+          message: document.message
+        })
+      }
+
+      return { successful: indexed.length }
+    }
+  }
+
+  const instance = elastic({ ...options, index: 'pinotest-%{DATE}' }, { Client })
+  const inserted = once(instance, 'insert')
+
+  instance.end(documents.map(JSON.stringify).join('\n'))
+  await inserted
+
+  t.assert.deepEqual(indexed.map(({ message }) => message), documents.map(({ message }) => message))
+  t.assert.match(indexed[0].index, /^pinotest-\d{4}-\d{2}-\d{2}$/)
+  t.assert.equal(indexed[1].index, 'pinotest-1970-01-01')
+  t.assert.equal(indexed[2].index, 'pinotest-2024-01-02')
+  t.assert.equal(indexed[3].index, 'pinotest-2024-02-03')
 })
 
 test('auth and cloud parameters are properly passed to client', (t, done) => {
