@@ -147,3 +147,9 @@ yarn.lock
 # 0x
 .__browserify*
 profile-*
+
+# AI
+.pi
+.claude
+CLAUDE.md
+AGENTS.md
