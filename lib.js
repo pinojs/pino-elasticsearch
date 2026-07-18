@@ -54,6 +54,11 @@ function initializeBulkHandler (opts, client, splitter) {
     if (buildIndexName) {
       return buildIndexName(time)
     }
+    if (typeof time === 'number' && Number.isFinite(time) && time >= 0) {
+      time = new Date(time).toISOString()
+    } else if (typeof time !== 'string' || time.length === 0) {
+      time = new Date().toISOString()
+    }
     return index.replace('%{DATE}', time.substring(0, 10))
   }
 }
