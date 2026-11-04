@@ -5,6 +5,8 @@
 const split = require('split2')
 const { Client: DefaultClient } = require('@elastic/elasticsearch')
 
+const RESTART_DELAY_MS = 1000
+
 function initializeBulkHandler (opts, client, splitter) {
   const esVersion = Number(opts.esVersion || opts['es-version']) || 7
   const index = opts.index || 'pino'
@@ -20,7 +22,7 @@ function initializeBulkHandler (opts, client, splitter) {
   }
 
   const bulkInsert = client.helpers.bulk({
-    datasource: splitter,
+    datasource: splitter.iterator({ destroyOnReturn: false }),
     flushBytes: opts.flushBytes || opts['flush-bytes'] || 1000,
     flushInterval: opts.flushInterval || opts['flush-interval'] || 30000,
     refreshOnCompletion: getIndexName(),
@@ -45,9 +47,13 @@ function initializeBulkHandler (opts, client, splitter) {
     }
   })
 
-  bulkInsert.then(
+  return bulkInsert.then(
     (stats) => splitter.emit('insert', stats),
-    (err) => splitter.emit('error', err)
+    (err) => {
+      if (splitter.listenerCount('error') > 0) {
+        splitter.emit('error', err)
+      }
+    }
   )
 
   function getIndexName (time = new Date().toISOString()) {
@@ -145,11 +151,23 @@ function pinoElasticSearch (opts = {}, { Client = DefaultClient } = {}) {
 
   const client = new Client(clientOpts)
 
-  client.diagnostic.on('resurrect', () => {
-    initializeBulkHandler(opts, client, splitter)
-  })
+  let bulkRunning = false
 
-  initializeBulkHandler(opts, client, splitter)
+  function startBulkHandler () {
+    if (bulkRunning || splitter.writableEnded) {
+      return
+    }
+
+    bulkRunning = true
+    initializeBulkHandler(opts, client, splitter).finally(() => {
+      bulkRunning = false
+      setTimeout(startBulkHandler, RESTART_DELAY_MS).unref()
+    })
+  }
+
+  client.diagnostic.on('resurrect', startBulkHandler)
+
+  startBulkHandler()
 
   return splitter
 }

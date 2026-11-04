@@ -20,6 +20,7 @@ export type DestinationStream = Transform & {
   on(event: 'insert', handler: (stats: Record<string, any>) => void): void
   /**
    * when some other kind of error happened, e.g. connection issues
+   * (logging carries on, the documents in the failed request are dropped)
    */
   on(event: 'error', handler: (error: Error) => void): void
 }

@@ -139,7 +139,7 @@ The following table lists the events emitted by the stream handler:
 | `unknown` | `(line: string, error: string) => void` | Event received by `pino-elasticsearch` is unparsable (via `JSON.parse`) |
 | `insertError` | `(error: Error & { document: Record<string, any> }) => void` | The bulk insert request to Elasticsearch failed (records dropped). |
 | `insert` | `(stats: Record<string, any>) => void` | Called when an insert was successfully performed |
-| `error` | `(error: Error) => void` | Called when the Elasticsearch client fails for some other reason |
+| `error` | `(error: Error) => void` | Called when the Elasticsearch client fails for some other reason (logging carries on, the documents in the failed request are dropped) |
 
 There are a few common problems developers will encounter when initially using this library.  The next section discusses these issues.
 
