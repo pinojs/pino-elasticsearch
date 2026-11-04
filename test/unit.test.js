@@ -1,6 +1,7 @@
 'use strict'
 
 const { once } = require('node:events')
+const { createServer } = require('node:http')
 const { test } = require('node:test')
 const pino = require('pino')
 const EcsFormat = require('@elastic/ecs-pino-format')
@@ -513,22 +514,12 @@ test('make sure `@timestamp` is correctly set when `opType` is `create`', (t, do
 })
 
 test('resurrect client connection pool when datasource split is destroyed', (t, done) => {
-  let isResurrected = false
-
   const Client = function (config) { }
 
   Client.prototype.diagnostic = { on: () => {} }
-  Client.prototype.helpers = {
-    bulk: async function (opts) {
-      if (!isResurrected) {
-        opts.datasource.destroy()
-      }
-    }
-  }
+  Client.prototype.helpers = { async bulk () { } }
   Client.prototype.connectionPool = {
     resurrect: function () {
-      isResurrected = true
-
       done()
     }
   }
@@ -537,6 +528,233 @@ test('resurrect client connection pool when datasource split is destroyed', (t, 
   const log = pino(instance)
 
   log.info(['info'], 'Example of a log')
+
+  instance.destroy()
+})
+
+test('restart bulk helper on the same stream after a failed bulk request', async (t) => {
+  t.mock.timers.enable({ apis: ['setTimeout'] })
+
+  const received = []
+  let calls = 0
+
+  const Client = function (config) { }
+
+  Client.prototype.diagnostic = { on: () => {} }
+  Client.prototype.connectionPool = { resurrect: () => {} }
+  Client.prototype.helpers = {
+    async bulk (opts) {
+      calls++
+      for await (const chunk of opts.datasource) {
+        received.push(chunk.msg)
+        if (calls === 1) {
+          throw new Error('bulk request failed')
+        }
+      }
+
+      return { successful: received.length }
+    }
+  }
+
+  const instance = elastic(options, { Client })
+  const log = pino(instance)
+  const failed = once(instance, 'error')
+
+  log.info('before the failure')
+  const [error] = await failed
+  await new Promise((resolve) => setImmediate(resolve))
+  t.mock.timers.tick(1000)
+  log.info('after the failure')
+
+  const inserted = once(instance, 'insert')
+  instance.end()
+  await inserted
+
+  t.assert.equal(error.message, 'bulk request failed')
+  t.assert.equal(calls, 2)
+  t.assert.deepEqual(received, ['before the failure', 'after the failure'])
+})
+
+test('failed bulk helper does not crash the process without an error listener', (t, done) => {
+  t.mock.timers.enable({ apis: ['setTimeout'] })
+
+  let calls = 0
+
+  const Client = function (config) { }
+
+  Client.prototype.diagnostic = { on: () => {} }
+  Client.prototype.connectionPool = { resurrect: () => {} }
+  Client.prototype.helpers = {
+    async bulk (opts) {
+      calls++
+      if (calls === 2) {
+        done()
+        return
+      }
+
+      for await (const chunk of opts.datasource) {
+        if (chunk) {
+          throw new Error('bulk request failed')
+        }
+      }
+    }
+  }
+
+  const instance = elastic(options, { Client })
+  const log = pino(instance)
+
+  log.info('before the failure')
+
+  setImmediate(() => t.mock.timers.tick(1000))
+})
+
+test('restarting bulk helper does not leave listeners on the stream', async (t) => {
+  t.mock.timers.enable({ apis: ['setTimeout'] })
+
+  const Client = function (config) { }
+
+  Client.prototype.diagnostic = { on: () => {} }
+  Client.prototype.connectionPool = { resurrect: () => {} }
+  Client.prototype.helpers = {
+    async bulk (opts) {
+      for await (const chunk of opts.datasource) {
+        if (chunk) {
+          throw new Error('bulk request failed')
+        }
+      }
+    }
+  }
+
+  const instance = elastic(options, { Client })
+  const log = pino(instance)
+  const events = ['readable', 'end', 'finish', 'close', 'error']
+  const listeners = () => events.map((event) => instance.listenerCount(event))
+  const initial = listeners()
+
+  for (let i = 0; i < 3; i++) {
+    const failed = once(instance, 'error')
+    log.info(`line ${i}`)
+    await failed
+    await new Promise((resolve) => setImmediate(resolve))
+    t.mock.timers.tick(1000)
+  }
+
+  t.assert.deepEqual(listeners(), initial)
+})
+
+test('do not restart bulk helper after the stream has ended', async (t) => {
+  t.mock.timers.enable({ apis: ['setTimeout'] })
+
+  let calls = 0
+
+  const Client = function (config) { }
+
+  Client.prototype.diagnostic = { on: () => {} }
+  Client.prototype.connectionPool = { resurrect: () => {} }
+  Client.prototype.helpers = {
+    async bulk (opts) {
+      calls++
+      for await (const chunk of opts.datasource) {
+        t.assert.ok(chunk)
+      }
+
+      return { successful: 1 }
+    }
+  }
+
+  const instance = elastic(options, { Client })
+  const inserted = once(instance, 'insert')
+
+  instance.end(JSON.stringify({ msg: 'only line' }))
+  await inserted
+  t.mock.timers.tick(1000)
+
+  t.assert.equal(calls, 1)
+})
+
+test('resurrect does not start a second bulk helper while one is running', async (t) => {
+  let resurrect
+  let calls = 0
+
+  const Client = function (config) { }
+
+  Client.prototype.diagnostic = {
+    on: (event, handler) => {
+      resurrect = handler
+    }
+  }
+  Client.prototype.connectionPool = { resurrect: () => {} }
+  Client.prototype.helpers = {
+    async bulk (opts) {
+      calls++
+      for await (const chunk of opts.datasource) {
+        t.assert.ok(chunk)
+      }
+
+      return { successful: 0 }
+    }
+  }
+
+  const instance = elastic(options, { Client })
+
+  resurrect()
+  t.assert.equal(calls, 1)
+
+  const inserted = once(instance, 'insert')
+  instance.end()
+  await inserted
+})
+
+test('ship logs again after Elasticsearch recovers from a failed bulk request', async (t) => {
+  let failing = true
+  let onIndexed
+  const indexed = new Promise((resolve) => {
+    onIndexed = resolve
+  })
+
+  const server = createServer((req, res) => {
+    let body = ''
+    req.on('data', (chunk) => {
+      body += chunk
+    })
+    req.on('end', () => {
+      res.setHeader('x-elastic-product', 'Elasticsearch')
+      res.setHeader('content-type', 'application/json')
+      if (!req.url.includes('_bulk')) {
+        res.end('{}')
+        return
+      }
+
+      if (failing) {
+        res.statusCode = 503
+        res.end(JSON.stringify({ error: 'unavailable', status: 503 }))
+        return
+      }
+
+      const documents = body.trim().split('\n').filter((line, i) => i % 2 === 1)
+      res.end(JSON.stringify({ took: 1, errors: false, items: documents.map(() => ({ index: { status: 201 } })) }))
+      onIndexed(documents.length)
+    })
+  })
+  server.listen(0, '127.0.0.1')
+  await once(server, 'listening')
+  t.after(() => server.close())
+
+  const instance = elastic({ ...options, node: `http://127.0.0.1:${server.address().port}`, flushInterval: 50 })
+  const log = pino(instance)
+  const failed = once(instance, 'error')
+  const traffic = setInterval(() => log.info('a log line'), 10)
+
+  await failed
+  failing = false
+  const count = await indexed
+  clearInterval(traffic)
+
+  const inserted = once(instance, 'insert')
+  instance.end()
+  await inserted
+
+  t.assert.ok(count > 0)
 })
 
 test('make sure deprecated `rejectUnauthorized` is passed to client constructor', (t, done) => {
